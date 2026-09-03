@@ -2,247 +2,313 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>TRACE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TRACE — Algorithmic Gesture</title>
 
 <style>
-    * {
-        box-sizing: border-box;
-    }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-    html,
-    body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: #f5f4ef;
-        color: #111;
-        font-family: Arial, Helvetica, sans-serif;
-    }
+:root {
+  --paper: #f4f2ed;
+  --ink: #111111;
+  --muted: #77736d;
+  --line: rgba(17,17,17,.18);
+}
 
-    body {
-        position: relative;
-    }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
 
-    #canvas {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        touch-action: none;
-        cursor: crosshair;
-    }
+body {
+  position: relative;
+}
 
-    .top {
-        position: absolute;
-        top: 28px;
-        left: 34px;
-        right: 34px;
+canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
 
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
+header {
+  position: fixed;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 82px;
+  padding: 27px 38px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+}
 
-        pointer-events: none;
-        z-index: 5;
-    }
+.logo {
+  font-size: 24px;
+  letter-spacing: .18em;
+  font-weight: 400;
+}
 
-    .wordmark {
-        font-size: 17px;
-        letter-spacing: 0.22em;
-        font-weight: 500;
-    }
+.counter {
+  font-family: "Courier New", monospace;
+  font-size: 15px;
+  letter-spacing: .18em;
+  color: var(--muted);
+}
 
-    .counter {
-        font-family: "Courier New", monospace;
-        font-size: 14px;
-        color: #777;
-        letter-spacing: 0.08em;
-    }
+.intro {
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  top: 47%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  transition: opacity .8s ease, transform .8s ease;
+}
 
-    .intro {
-        position: absolute;
-        left: 50%;
-        top: 50%;
+.intro.hidden {
+  opacity: 0;
+  transform: translate(-50%, -54%);
+}
 
-        transform: translate(-50%, -50%);
-        text-align: center;
+.title {
+  font-size: clamp(82px, 18vw, 180px);
+  line-height: .8;
+  letter-spacing: -.07em;
+  font-weight: 500;
+}
 
-        pointer-events: none;
-        z-index: 4;
+.subtitle {
+  margin-top: 35px;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  letter-spacing: .38em;
+  color: #8b8781;
+  text-transform: uppercase;
+}
 
-        transition:
-            opacity 0.8s ease,
-            transform 0.8s ease;
-    }
+.instruction {
+  position: fixed;
+  z-index: 15;
+  left: 38px;
+  bottom: 45px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.65;
+  pointer-events: none;
+}
 
-    .intro.hidden {
-        opacity: 0;
-        transform: translate(-50%, -54%);
-    }
+.controls {
+  position: fixed;
+  z-index: 20;
+  right: 38px;
+  bottom: 38px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-    .title {
-        margin: 0;
+button {
+  border: 1px solid rgba(17,17,17,.28);
+  background: rgba(244,242,237,.82);
+  backdrop-filter: blur(8px);
+  color: #55514c;
+  min-width: 184px;
+  padding: 17px 25px;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  letter-spacing: .2em;
+  cursor: pointer;
+  transition: .25s ease;
+}
 
-        font-size: clamp(72px, 15vw, 170px);
-        font-weight: 400;
-        letter-spacing: -0.07em;
-        line-height: 0.8;
-    }
+button:hover {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
 
-    .subtitle {
-        margin-top: 34px;
+button.primary {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
 
-        font-family: "Courier New", monospace;
-        font-size: 12px;
-        letter-spacing: 0.25em;
-        text-transform: uppercase;
+button.primary:hover {
+  background: #333;
+}
 
-        color: #777;
-    }
+.navigation {
+  position: fixed;
+  z-index: 30;
+  top: 91px;
+  left: 38px;
+  display: flex;
+  gap: 22px;
+}
 
-    .instruction {
-        position: absolute;
-        left: 34px;
-        bottom: 32px;
+.nav-button {
+  min-width: auto;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  backdrop-filter: none;
+  color: #99948d;
+  font-size: 11px;
+  letter-spacing: .22em;
+}
 
-        max-width: 260px;
+.nav-button.active {
+  color: #111;
+}
 
-        font-size: 13px;
-        line-height: 1.6;
-        color: #777;
+.gallery {
+  position: fixed;
+  z-index: 12;
+  inset: 125px 30px 30px;
+  overflow-y: auto;
+  padding: 10px 8px 80px;
+  display: none;
+  scrollbar-width: thin;
+}
 
-        pointer-events: none;
-        z-index: 5;
+.gallery.visible {
+  display: block;
+}
 
-        transition: opacity 0.6s ease;
-    }
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
 
-    .instruction.hidden {
-        opacity: 0;
-    }
+.gallery-item {
+  position: relative;
+  background: rgba(255,255,255,.32);
+  border: 1px solid rgba(17,17,17,.12);
+  padding: 10px;
+  animation: appear .5s ease both;
+}
 
-    .controls {
-        position: absolute;
-        right: 34px;
-        bottom: 32px;
+.gallery-item canvas {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  background: var(--paper);
+}
 
-        display: flex;
-        gap: 10px;
+.gallery-meta {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 3px 3px;
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  letter-spacing: .14em;
+  color: #77736d;
+  text-transform: uppercase;
+}
 
-        z-index: 6;
-    }
+.empty {
+  width: 100%;
+  text-align: center;
+  margin-top: 25vh;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  line-height: 2;
+  letter-spacing: .15em;
+  color: #99948d;
+}
 
-    button {
-        appearance: none;
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-        border: 1px solid #aaa;
-        background: rgba(245, 244, 239, 0.8);
+@media (max-width: 600px) {
 
-        color: #333;
+  header {
+    padding: 24px 22px;
+    height: 70px;
+  }
 
-        padding: 12px 17px;
+  .logo {
+    font-size: 21px;
+  }
 
-        font-family: "Courier New", monospace;
-        font-size: 11px;
-        letter-spacing: 0.14em;
+  .counter {
+    font-size: 13px;
+  }
 
-        cursor: pointer;
+  .intro {
+    width: 100%;
+  }
 
-        transition:
-            background 0.2s ease,
-            color 0.2s ease,
-            border-color 0.2s ease;
-    }
+  .title {
+    font-size: 82px;
+  }
 
-    button:hover {
-        background: #111;
-        color: #f5f4ef;
-        border-color: #111;
-    }
+  .subtitle {
+    font-size: 10px;
+    letter-spacing: .27em;
+    margin-top: 27px;
+  }
 
-    button:active {
-        transform: translateY(1px);
-    }
+  .instruction {
+    left: 22px;
+    bottom: 28px;
+    font-size: 13px;
+    max-width: 235px;
+  }
 
-    .gallery-link {
-        position: absolute;
-        left: 50%;
-        bottom: 34px;
+  .controls {
+    right: 22px;
+    bottom: 25px;
+  }
 
-        transform: translateX(-50%);
+  button {
+    min-width: 140px;
+    padding: 14px 15px;
+    font-size: 11px;
+  }
 
-        font-family: "Courier New", monospace;
-        font-size: 10px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
+  .navigation {
+    top: 75px;
+    left: 22px;
+  }
 
-        color: #999;
+  .gallery {
+    inset: 108px 15px 15px;
+  }
 
-        pointer-events: none;
-        z-index: 5;
+  .gallery-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
 
-        opacity: 0;
-        transition: opacity 0.6s ease;
-    }
-
-    .gallery-link.visible {
-        opacity: 1;
-    }
-
-    @media (max-width: 600px) {
-
-        .top {
-            top: 22px;
-            left: 22px;
-            right: 22px;
-        }
-
-        .wordmark {
-            font-size: 15px;
-        }
-
-        .counter {
-            font-size: 12px;
-        }
-
-        .title {
-            font-size: 21vw;
-        }
-
-        .subtitle {
-            margin-top: 25px;
-            font-size: 10px;
-            letter-spacing: 0.18em;
-        }
-
-        .instruction {
-            left: 22px;
-            bottom: 25px;
-            max-width: 190px;
-            font-size: 12px;
-        }
-
-        .controls {
-            right: 22px;
-            bottom: 25px;
-
-            flex-direction: column;
-            gap: 7px;
-        }
-
-        button {
-            padding: 10px 13px;
-            font-size: 10px;
-        }
-
-        .gallery-link {
-            bottom: 19px;
-            display: none;
-        }
-    }
+  .gallery-meta {
+    font-size: 8px;
+  }
+}
 </style>
 </head>
 
@@ -250,298 +316,489 @@
 
 <canvas id="canvas"></canvas>
 
-<div class="top">
-    <div class="wordmark">TRACE</div>
-    <div class="counter" id="counter">0000</div>
-</div>
+<header>
+  <div class="logo">TRACE</div>
+  <div class="counter" id="counter">0000</div>
+</header>
 
-<div class="intro" id="intro">
-    <h1 class="title">TRACE</h1>
+<nav class="navigation">
+  <button class="nav-button active" id="createTab">CREATE</button>
+  <button class="nav-button" id="galleryTab">GALLERY</button>
+</nav>
 
-    <div class="subtitle">
-        gesture / algorithm / line
-    </div>
-</div>
+<section class="intro" id="intro">
+  <div class="title">TRACE</div>
+  <div class="subtitle">GESTURE / ALGORITHM / LINE</div>
+</section>
 
 <div class="instruction" id="instruction">
-    Move across the surface.<br>
-    Your gesture becomes a trace.
+  Move across the surface.<br>
+  Your gesture becomes a trace.
 </div>
 
-<div class="controls">
-    <button id="clearButton" type="button">CLEAR</button>
-    <button id="generateButton" type="button">GENERATE</button>
+<div class="controls" id="controls">
+  <button class="primary" id="clearButton">CLEAR</button>
+  <button id="generateButton">GENERATE</button>
 </div>
 
-<div class="gallery-link" id="galleryLink">
-    gallery / coming next
-</div>
+<section class="gallery" id="gallery">
+  <div class="gallery-grid" id="galleryGrid"></div>
+  <div class="empty" id="emptyGallery">
+    NO TRACES YET<br><br>
+    CREATE A GESTURE TO BEGIN
+  </div>
+</section>
 
 <script>
-(() => {
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+const intro = document.getElementById("intro");
+const instruction = document.getElementById("instruction");
+const counter = document.getElementById("counter");
 
-    const counter = document.getElementById("counter");
-    const intro = document.getElementById("intro");
-    const instruction = document.getElementById("instruction");
-    const galleryLink = document.getElementById("galleryLink");
+const clearButton = document.getElementById("clearButton");
+const generateButton = document.getElementById("generateButton");
 
-    const clearButton = document.getElementById("clearButton");
-    const generateButton = document.getElementById("generateButton");
+const createTab = document.getElementById("createTab");
+const galleryTab = document.getElementById("galleryTab");
 
-    let drawing = false;
-    let lastX = 0;
-    let lastY = 0;
+const controls = document.getElementById("controls");
+const gallery = document.getElementById("gallery");
+const galleryGrid = document.getElementById("galleryGrid");
+const emptyGallery = document.getElementById("emptyGallery");
 
-    let traceCount = 0;
-    let totalMovement = 0;
+let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    let width = 0;
-    let height = 0;
+let drawing = false;
+let points = [];
+let totalMarks = 0;
+let gestureNumber = 0;
 
-    function resizeCanvas() {
+let hue = Math.random() * 360;
+let lastPoint = null;
+let lastTime = 0;
+let gestureStarted = false;
 
-        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+const paper = "#f4f2ed";
 
-        width = window.innerWidth;
-        height = window.innerHeight;
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-        canvas.width = width * ratio;
-        canvas.height = height * ratio;
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
 
-        canvas.style.width = width + "px";
-        canvas.style.height = height + "px";
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
 
-        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
 
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-    }
+resize();
+window.addEventListener("resize", resize);
 
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+function clearCanvas(save = false) {
 
-    function updateCounter() {
+  ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-        counter.textContent =
-            String(Math.min(traceCount, 9999))
-            .padStart(4, "0");
-    }
+  if (save && points.length > 5) {
+    saveGesture();
+  }
 
-    function drawPoint(x, y, previousX, previousY) {
+  points = [];
+  lastPoint = null;
+  drawing = false;
 
-        const dx = x - previousX;
-        const dy = y - previousY;
+  updateCounter();
 
-        const distance = Math.sqrt(dx * dx + dy * dy);
+  intro.classList.remove("hidden");
+  instruction.style.opacity = "1";
+}
 
-        if (distance < 0.5) {
-            return;
-        }
+function updateCounter() {
+  counter.textContent = String(totalMarks).padStart(4, "0");
+}
 
-        totalMovement += distance;
+function distance(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
 
-        /*
-         * This is the first small algorithmic intervention.
-         * The line does not exactly follow the gesture.
-         * Its position is subtly displaced according to
-         * movement and a sine-based variation.
-         */
+function getPoint(event) {
 
-        const angle = Math.atan2(dy, dx);
+  const rect = canvas.getBoundingClientRect();
 
-        const variation =
-            Math.sin(totalMovement * 0.035) *
-            Math.min(distance * 0.22, 7);
+  return {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top,
+    time: performance.now()
+  };
+}
 
-        const offsetX =
-            Math.cos(angle + Math.PI / 2) * variation;
+function startGesture(event) {
 
-        const offsetY =
-            Math.sin(angle + Math.PI / 2) * variation;
+  if (gallery.classList.contains("visible")) return;
 
-        const finalX = x + offsetX;
-        const finalY = y + offsetY;
+  drawing = true;
+  gestureStarted = true;
 
-        const speed = Math.min(distance, 25);
+  intro.classList.add("hidden");
+  instruction.style.opacity = "0";
 
-        ctx.beginPath();
+  const p = getPoint(event);
 
-        ctx.moveTo(
-            previousX,
-            previousY
-        );
+  points = [p];
+  lastPoint = p;
+  lastTime = p.time;
 
-        ctx.lineTo(
-            finalX,
-            finalY
-        );
+  hue = (hue + 47 + Math.random() * 80) % 360;
 
-        /*
-         * Faster gestures become slightly thinner.
-         * Slower gestures remain more substantial.
-         */
+  canvas.setPointerCapture?.(event.pointerId);
+}
 
-        ctx.lineWidth =
-            Math.max(
-                0.8,
-                2.6 - speed * 0.045
-            );
+function drawGesture(event) {
 
-        ctx.strokeStyle = "#111";
+  if (!drawing) return;
 
-        ctx.stroke();
+  const p = getPoint(event);
 
-        traceCount++;
-        updateCounter();
-    }
+  const prev = lastPoint;
+  const dt = Math.max(8, p.time - lastTime);
 
-    function startDrawing(event) {
+  const dx = p.x - prev.x;
+  const dy = p.y - prev.y;
 
-        drawing = true;
+  const speed = Math.min(3, Math.hypot(dx, dy) / dt * 10);
 
-        const rect = canvas.getBoundingClientRect();
+  const angle = Math.atan2(dy, dx);
 
-        lastX = event.clientX - rect.left;
-        lastY = event.clientY - rect.top;
+  const wiggle =
+    Math.sin(points.length * 0.22 + hue) *
+    (1.5 + speed * 3);
 
-        intro.classList.add("hidden");
-        instruction.classList.add("hidden");
-        galleryLink.classList.remove("visible");
+  const nx = -Math.sin(angle);
+  const ny = Math.cos(angle);
 
-        canvas.setPointerCapture(event.pointerId);
-    }
+  const ax = p.x + nx * wiggle;
+  const ay = p.y + ny * wiggle;
 
-    function draw(event) {
-
-        if (!drawing) {
-            return;
-        }
-
-        const rect = canvas.getBoundingClientRect();
-
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-
-        drawPoint(
-            x,
-            y,
-            lastX,
-            lastY
-        );
-
-        lastX = x;
-        lastY = y;
-    }
-
-    function stopDrawing() {
-
-        if (!drawing) {
-            return;
-        }
-
-        drawing = false;
-
-        /*
-         * The trace is finished.
-         * Later we will let the algorithm
-         * continue transforming it here.
-         */
-
-        if (traceCount > 10) {
-            galleryLink.classList.add("visible");
-        }
-    }
-
-    canvas.addEventListener(
-        "pointerdown",
-        startDrawing
+  const width =
+    Math.max(
+      .8,
+      Math.min(
+        8,
+        1.1 + speed * 2.2 + Math.sin(points.length * .08) * .7
+      )
     );
 
-    canvas.addEventListener(
-        "pointermove",
-        draw
+  const colorShift =
+    Math.sin(points.length * .045) * 24;
+
+  const color =
+    `hsl(${(hue + colorShift + 360) % 360}, 72%, 48%)`;
+
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  // Main algorithmic line
+  ctx.beginPath();
+  ctx.moveTo(prev.x, prev.y);
+  ctx.quadraticCurveTo(ax, ay, p.x, p.y);
+
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = .78;
+  ctx.lineWidth = width;
+  ctx.stroke();
+
+  // Secondary echo
+  const echo =
+    3 +
+    Math.sin(points.length * .13) * 3 +
+    speed * 2;
+
+  ctx.beginPath();
+  ctx.moveTo(prev.x + nx * echo, prev.y + ny * echo);
+  ctx.quadraticCurveTo(
+    ax + nx * echo * 1.5,
+    ay + ny * echo * 1.5,
+    p.x + nx * echo,
+    p.y + ny * echo
+  );
+
+  ctx.globalAlpha = .20;
+  ctx.lineWidth = Math.max(.5, width * .45);
+  ctx.stroke();
+
+  // Random algorithmic fragments
+  if (Math.random() < .075) {
+
+    const length = 5 + Math.random() * 18;
+    const offset = (Math.random() - .5) * 12;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      p.x + nx * offset,
+      p.y + ny * offset
     );
 
-    canvas.addEventListener(
-        "pointerup",
-        stopDrawing
+    ctx.lineTo(
+      p.x + nx * offset + Math.cos(angle) * length,
+      p.y + ny * offset + Math.sin(angle) * length
     );
 
-    canvas.addEventListener(
-        "pointercancel",
-        stopDrawing
+    ctx.globalAlpha = .35;
+    ctx.lineWidth = Math.max(.5, width * .55);
+    ctx.stroke();
+  }
+
+  ctx.globalAlpha = 1;
+
+  points.push({
+    x: p.x,
+    y: p.y,
+    time: p.time,
+    speed
+  });
+
+  totalMarks++;
+  updateCounter();
+
+  lastPoint = p;
+  lastTime = p.time;
+}
+
+function endGesture(event) {
+
+  if (!drawing) return;
+
+  drawing = false;
+
+  try {
+    canvas.releasePointerCapture?.(event.pointerId);
+  } catch(e) {}
+
+  if (points.length > 8) {
+    saveGesture();
+  }
+
+  gestureStarted = false;
+}
+
+canvas.addEventListener("pointerdown", startGesture);
+canvas.addEventListener("pointermove", drawGesture);
+canvas.addEventListener("pointerup", endGesture);
+canvas.addEventListener("pointercancel", endGesture);
+
+function generate() {
+
+  if (gallery.classList.contains("visible")) return;
+
+  intro.classList.add("hidden");
+  instruction.style.opacity = "0";
+
+  const margin = 90;
+
+  let x = margin + Math.random() * (window.innerWidth - margin * 2);
+  let y = margin + Math.random() * (window.innerHeight - margin * 2);
+
+  let angle = Math.random() * Math.PI * 2;
+
+  const count = 100 + Math.floor(Math.random() * 130);
+
+  hue = Math.random() * 360;
+
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  for (let i = 0; i < count; i++) {
+
+    const oldX = x;
+    const oldY = y;
+
+    angle +=
+      (Math.random() - .5) * .38 +
+      Math.sin(i * .08) * .025;
+
+    const step =
+      3 +
+      Math.random() * 7;
+
+    x += Math.cos(angle) * step;
+    y += Math.sin(angle) * step;
+
+    if (x < margin || x > window.innerWidth - margin) {
+      angle = Math.PI - angle;
+    }
+
+    if (y < margin || y > window.innerHeight - margin) {
+      angle = -angle;
+    }
+
+    const color =
+      `hsl(${(hue + i * .9) % 360}, 72%, 48%)`;
+
+    ctx.beginPath();
+    ctx.moveTo(oldX, oldY);
+    ctx.quadraticCurveTo(
+      (oldX + x) / 2 + (Math.random() - .5) * 15,
+      (oldY + y) / 2 + (Math.random() - .5) * 15,
+      x,
+      y
     );
 
-    clearButton.addEventListener(
-        "click",
-        () => {
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = .65;
+    ctx.lineWidth = 1 + Math.random() * 3;
+    ctx.stroke();
 
-            ctx.clearRect(
-                0,
-                0,
-                width,
-                height
-            );
+    totalMarks++;
+  }
 
-            traceCount = 0;
-            totalMovement = 0;
+  ctx.globalAlpha = 1;
+  updateCounter();
 
-            updateCounter();
+  setTimeout(saveGenerated, 250);
+}
 
-            intro.classList.remove("hidden");
-            instruction.classList.remove("hidden");
-            galleryLink.classList.remove("visible");
-        }
+function saveGenerated() {
+
+  const image = canvas.toDataURL("image/png");
+
+  const gallery = getGallery();
+
+  gestureNumber++;
+
+  gallery.unshift({
+    id: gestureNumber,
+    image: image,
+    type: "generated"
+  });
+
+  saveGallery(gallery);
+}
+
+function saveGesture() {
+
+  if (points.length < 8) return;
+
+  const image = canvas.toDataURL("image/png");
+
+  const galleryData = getGallery();
+
+  gestureNumber++;
+
+  galleryData.unshift({
+    id: gestureNumber,
+    image: image,
+    type: "gesture"
+  });
+
+  saveGallery(galleryData);
+}
+
+function getGallery() {
+
+  try {
+    return JSON.parse(
+      localStorage.getItem("trace-gallery") || "[]"
     );
+  } catch(e) {
+    return [];
+  }
+}
 
-    generateButton.addEventListener(
-        "click",
-        () => {
+function saveGallery(data) {
 
-            intro.classList.add("hidden");
-            instruction.classList.add("hidden");
+  // Keep the gallery reasonably small.
+  const limited = data.slice(0, 30);
 
-            let x = width * 0.2 + Math.random() * width * 0.6;
-            let y = height * 0.2 + Math.random() * height * 0.6;
-
-            let previousX = x;
-            let previousY = y;
-
-            const points = 100 + Math.floor(Math.random() * 100);
-
-            for (let i = 0; i < points; i++) {
-
-                const angle =
-                    Math.random() * Math.PI * 2;
-
-                const distance =
-                    4 + Math.random() * 18;
-
-                x += Math.cos(angle) * distance;
-                y += Math.sin(angle) * distance;
-
-                x = Math.max(0, Math.min(width, x));
-                y = Math.max(0, Math.min(height, y));
-
-                drawPoint(
-                    x,
-                    y,
-                    previousX,
-                    previousY
-                );
-
-                previousX = x;
-                previousY = y;
-            }
-
-            galleryLink.classList.add("visible");
-        }
+  try {
+    localStorage.setItem(
+      "trace-gallery",
+      JSON.stringify(limited)
     );
+  } catch(e) {}
 
-})();
+  renderGallery();
+}
+
+function renderGallery() {
+
+  const items = getGallery();
+
+  galleryGrid.innerHTML = "";
+
+  emptyGallery.style.display =
+    items.length ? "none" : "block";
+
+  items.forEach(item => {
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "gallery-item";
+
+    const img = document.createElement("img");
+
+    img.src = item.image;
+    img.style.width = "100%";
+    img.style.display = "block";
+    img.style.aspectRatio = "1 / 1";
+    img.style.objectFit = "cover";
+    img.style.background = paper;
+
+    const meta = document.createElement("div");
+    meta.className = "gallery-meta";
+
+    meta.innerHTML = `
+      <span>TRACE ${String(item.id).padStart(4,"0")}</span>
+      <span>${item.type}</span>
+    `;
+
+    wrapper.appendChild(img);
+    wrapper.appendChild(meta);
+
+    galleryGrid.appendChild(wrapper);
+  });
+}
+
+function showCreate() {
+
+  gallery.classList.remove("visible");
+
+  canvas.style.display = "block";
+  controls.style.display = "flex";
+  intro.style.display = "block";
+  instruction.style.display = "block";
+
+  createTab.classList.add("active");
+  galleryTab.classList.remove("active");
+}
+
+function showGallery() {
+
+  gallery.classList.add("visible");
+
+  canvas.style.display = "none";
+  controls.style.display = "none";
+  intro.style.display = "none";
+  instruction.style.display = "none";
+
+  createTab.classList.remove("active");
+  galleryTab.classList.add("active");
+
+  renderGallery();
+}
+
+createTab.addEventListener("click", showCreate);
+galleryTab.addEventListener("click", showGallery);
+
+clearButton.addEventListener("click", () => {
+  clearCanvas(false);
+});
+
+generateButton.addEventListener("click", generate);
+
+renderGallery();
+
 </script>
 
 </body>
