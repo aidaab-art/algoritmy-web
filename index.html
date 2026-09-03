@@ -242,6 +242,16 @@ nav{
   color:var(--paper);
 }
 
+.action:disabled{
+  opacity:.35;
+  cursor:default;
+}
+
+.action:disabled:hover{
+  background:rgba(245,243,238,.84);
+  color:var(--ink);
+}
+
 .save{
   display:none;
   pointer-events:auto;
@@ -473,6 +483,10 @@ nav{
     bottom:20px;
   }
 
+  .control-group{
+    gap:7px;
+  }
+
   .action{
     padding:10px 12px;
     font-size:8px;
@@ -549,6 +563,10 @@ nav{
 <div class="controls">
 
   <div class="control-group">
+
+    <button class="action" id="undoBtn" disabled>
+      UNDO
+    </button>
 
     <button class="action" id="clearBtn">
       CLEAR
@@ -677,6 +695,9 @@ const counter =
 const saveBtn =
   document.getElementById("saveBtn");
 
+const undoBtn =
+  document.getElementById("undoBtn");
+
 const modal =
   document.getElementById("modal");
 
@@ -714,6 +735,110 @@ let hue =
 
 let currentMode =
   "LINE";
+
+
+/* =====================================================
+   UNDO HISTORY
+===================================================== */
+
+let history = [];
+
+const MAX_HISTORY = 30;
+
+
+function saveHistory(){
+
+  if(!W || !H)
+    return;
+
+  const snapshot =
+    ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+  history.push({
+    imageData:snapshot,
+    strokes:strokes,
+    hasDrawing:hasDrawing,
+    hue:hue
+  });
+
+  if(history.length>MAX_HISTORY){
+    history.shift();
+  }
+
+  updateUndoButton();
+}
+
+
+function updateUndoButton(){
+
+  undoBtn.disabled =
+    history.length===0;
+}
+
+
+function undo(){
+
+  if(!history.length)
+    return;
+
+  drawing=false;
+
+  const previous =
+    history.pop();
+
+  ctx.putImageData(
+    previous.imageData,
+    0,
+    0
+  );
+
+  strokes =
+    previous.strokes;
+
+  hasDrawing =
+    previous.hasDrawing;
+
+  hue =
+    previous.hue;
+
+  lastX=0;
+  lastY=0;
+  lastTime=0;
+
+  if(hasDrawing){
+
+    intro.classList.add(
+      "hidden"
+    );
+
+    saveBtn.style.display=
+      "block";
+
+    counter.textContent=
+      "TRACE / "+
+      String(strokes)
+        .padStart(3,"0");
+
+  }else{
+
+    intro.classList.remove(
+      "hidden"
+    );
+
+    saveBtn.style.display=
+      "none";
+
+    counter.textContent=
+      "TRACE / 000";
+  }
+
+  updateUndoButton();
+}
 
 
 /* =====================================================
@@ -755,7 +880,9 @@ function resize(){
     0
   );
 
-  clearCanvas();
+  history=[];
+
+  clearCanvas(false);
 }
 
 window.addEventListener(
@@ -768,7 +895,15 @@ window.addEventListener(
    CLEAR
 ===================================================== */
 
-function clearCanvas(){
+function clearCanvas(addHistory=true){
+
+  if(
+    addHistory &&
+    hasDrawing
+  ){
+
+    saveHistory();
+  }
 
   ctx.fillStyle =
     "#f5f3ee";
@@ -795,6 +930,8 @@ function clearCanvas(){
 
   counter.textContent =
     "TRACE / 000";
+
+  updateUndoButton();
 }
 
 
@@ -1428,6 +1565,8 @@ canvas.addEventListener(
 
     e.preventDefault();
 
+    saveHistory();
+
     drawing=true;
 
     canvas.setPointerCapture(
@@ -1517,6 +1656,20 @@ canvas.addEventListener(
         ctx.fill();
       }
     }
+
+    hasDrawing=true;
+
+    intro.classList.add(
+      "hidden"
+    );
+
+    saveBtn.style.display=
+      "block";
+
+    counter.textContent=
+      "TRACE / "+
+      String(strokes)
+        .padStart(3,"0");
   }
 );
 
@@ -1592,7 +1745,9 @@ document
             "active"
           );
 
-          clearCanvas();
+          history=[];
+
+          clearCanvas(false);
         }
       );
     }
@@ -1985,7 +2140,11 @@ function generateFlow(){
 
 function generate(){
 
-  clearCanvas();
+  if(hasDrawing){
+    saveHistory();
+  }
+
+  clearCanvas(false);
 
   intro.classList.add(
     "hidden"
@@ -2020,6 +2179,8 @@ function generate(){
     "TRACE / "+
     String(strokes)
       .padStart(3,"0");
+
+  updateUndoButton();
 }
 
 
@@ -2401,11 +2562,20 @@ async function saveArtwork(){
 ===================================================== */
 
 document
+  .getElementById("undoBtn")
+  .addEventListener(
+    "click",
+    undo
+  );
+
+
+document
   .getElementById("clearBtn")
   .addEventListener(
     "click",
-    clearCanvas
+    ()=>clearCanvas(true)
   );
+
 
 document
   .getElementById("generateBtn")
@@ -2414,6 +2584,7 @@ document
     generate
   );
 
+
 document
   .getElementById("saveBtn")
   .addEventListener(
@@ -2421,12 +2592,14 @@ document
     openSave
   );
 
+
 document
   .getElementById("confirm")
   .addEventListener(
     "click",
     saveArtwork
   );
+
 
 document
   .getElementById("cancel")
