@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>TRACE — Algorithmic Gesture</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400&family=Inter:wght@300;400;500&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #f3f1eb;
+    color: #111;
+}
+
+body {
+    font-family: Inter, sans-serif;
+    cursor: crosshair;
+}
+
+canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.interface {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 28px;
+}
+
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.title {
+    font-size: 15px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.number {
+    font-family: "DM Mono", monospace;
+    font-size: 12px;
+    opacity: 0.55;
+}
+
+.center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    transition: opacity 0.5s ease;
+}
+
+.center h1 {
+    margin: 0;
+    font-size: clamp(54px, 12vw, 170px);
+    line-height: 0.85;
+    font-weight: 300;
+    letter-spacing: -0.07em;
+}
+
+.center p {
+    margin-top: 24px;
+    font-family: "DM Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.55;
+}
+
+.bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.instruction {
+    max-width: 260px;
+    font-size: 12px;
+    line-height: 1.6;
+    opacity: 0.6;
+}
+
+.controls {
+    pointer-events: auto;
+    display: flex;
+    gap: 8px;
+}
+
+button {
+    border: 1px solid rgba(0,0,0,0.25);
+    background: rgba(243,241,235,0.65);
+    backdrop-filter: blur(8px);
+    padding: 10px 15px;
+    font-family: "DM Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #111;
+    color: #f3f1eb;
+}
+
+@media (max-width: 600px) {
+    .interface {
+        padding: 18px;
+    }
+
+    .center h1 {
+        font-size: 72px;
+    }
+
+    .instruction {
+        max-width: 180px;
+        font-size: 10px;
+    }
+
+    .controls {
+        flex-direction: column;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div class="interface">
+
+    <div class="top">
+        <div class="title">TRACE</div>
+        <div class="number" id="counter">0000</div>
+    </div>
+
+    <div class="center" id="intro">
+        <h1>TRACE</h1>
+        <p>gesture / algorithm / line</p>
+    </div>
+
+    <div class="bottom">
+
+        <div class="instruction">
+            Move across the surface.<br>
+            Your gesture becomes a trace.
+        </div>
+
+        <div class="controls">
+            <button id="clear">Clear</button>
+            <button id="random">Generate</button>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let width;
+let height;
+
+let drawing = false;
+let lastX = null;
+let lastY = null;
+
+let lines = 0;
+
+function resize() {
+    width = canvas.width = window.innerWidth * devicePixelRatio;
+    height = canvas.height = window.innerHeight * devicePixelRatio;
+
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+
+    ctx.fillStyle = "#f3f1eb";
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+}
+
+resize();
+window.addEventListener("resize", resize);
+
+function updateCounter() {
+    document.getElementById("counter").textContent =
+        String(lines).padStart(4, "0");
+}
+
+function draw(x, y, previousX, previousY) {
+
+    if (previousX === null || previousY === null) return;
+
+    const dx = x - previousX;
+    const dy = y - previousY;
+
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    const angle = Math.atan2(dy, dx);
+
+    const variation =
+        Math.sin(lines * 0.7) * 7 +
+        Math.random() * 4;
+
+    const offsetX =
+        Math.cos(angle + Math.PI / 2) * variation;
+
+    const offsetY =
+        Math.sin(angle + Math.PI / 2) * variation;
+
+    ctx.beginPath();
+
+    ctx.moveTo(previousX, previousY);
+
+    ctx.quadraticCurveTo(
+        (previousX + x) / 2 + offsetX,
+        (previousY + y) / 2 + offsetY,
+        x,
+        y
+    );
+
+    ctx.lineWidth =
+        Math.max(0.5, Math.min(3.5, distance * 0.08));
+
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#111";
+
+    ctx.stroke();
+
+    lines++;
+    updateCounter();
+
+    document.getElementById("intro").style.opacity = "0";
+}
+
+function pointerDown(x, y) {
+    drawing = true;
+    lastX = x;
+    lastY = y;
+}
+
+function pointerMove(x, y) {
+    if (!drawing) return;
+
+    draw(x, y, lastX, lastY);
+
+    lastX = x;
+    lastY = y;
+}
+
+function pointerUp() {
+    drawing = false;
+    lastX = null;
+    lastY = null;
+}
+
+canvas.addEventListener("mousedown", e => {
+    pointerDown(e.clientX, e.clientY);
+});
+
+canvas.addEventListener("mousemove", e => {
+    pointerMove(e.clientX, e.clientY);
+});
+
+window.addEventListener("mouseup", pointerUp);
+
+canvas.addEventListener("touchstart", e => {
+    e.preventDefault();
+
+    const touch = e.touches[0];
+
+    pointerDown(touch.clientX, touch.clientY);
+}, { passive: false });
+
+canvas.addEventListener("touchmove", e => {
+    e.preventDefault();
+
+    const touch = e.touches[0];
+
+    pointerMove(touch.clientX, touch.clientY);
+}, { passive: false });
+
+canvas.addEventListener("touchend", pointerUp);
+
+document.getElementById("clear").addEventListener("click", () => {
+
+    ctx.fillStyle = "#f3f1eb";
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+    lines = 0;
+    updateCounter();
+
+    document.getElementById("intro").style.opacity = "1";
+});
+
+document.getElementById("random").addEventListener("click", () => {
+
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+
+    let x = centerX;
+    let y = centerY;
+
+    for (let i = 0; i < 120; i++) {
+
+        const previousX = x;
+        const previousY = y;
+
+        x += (Math.random() - 0.5) * 120;
+        y += (Math.random() - 0.5) * 120;
+
+        draw(x, y, previousX, previousY);
+    }
+});
+</script>
+
+</body>
+</html>
