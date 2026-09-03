@@ -4,146 +4,245 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>TRACE — Algorithmic Gesture</title>
+<title>TRACE</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400&family=Inter:wght@300;400;500&display=swap');
-
-* {
-    box-sizing: border-box;
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #f3f1eb;
-    color: #111;
-}
-
-body {
-    font-family: Inter, sans-serif;
-    cursor: crosshair;
-}
-
-canvas {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-}
-
-.interface {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 28px;
-}
-
-.top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.title {
-    font-size: 15px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    font-weight: 500;
-}
-
-.number {
-    font-family: "DM Mono", monospace;
-    font-size: 12px;
-    opacity: 0.55;
-}
-
-.center {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    transition: opacity 0.5s ease;
-}
-
-.center h1 {
-    margin: 0;
-    font-size: clamp(54px, 12vw, 170px);
-    line-height: 0.85;
-    font-weight: 300;
-    letter-spacing: -0.07em;
-}
-
-.center p {
-    margin-top: 24px;
-    font-family: "DM Mono", monospace;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    opacity: 0.55;
-}
-
-.bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-}
-
-.instruction {
-    max-width: 260px;
-    font-size: 12px;
-    line-height: 1.6;
-    opacity: 0.6;
-}
-
-.controls {
-    pointer-events: auto;
-    display: flex;
-    gap: 8px;
-}
-
-button {
-    border: 1px solid rgba(0,0,0,0.25);
-    background: rgba(243,241,235,0.65);
-    backdrop-filter: blur(8px);
-    padding: 10px 15px;
-    font-family: "DM Mono", monospace;
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #111;
-    color: #f3f1eb;
-}
-
-@media (max-width: 600px) {
-    .interface {
-        padding: 18px;
+    * {
+        box-sizing: border-box;
     }
 
-    .center h1 {
-        font-size: 72px;
+    html,
+    body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #f5f4ef;
+        color: #111;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+        position: relative;
+    }
+
+    #canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        cursor: crosshair;
+    }
+
+    .top {
+        position: absolute;
+        top: 28px;
+        left: 34px;
+        right: 34px;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    .wordmark {
+        font-size: 17px;
+        letter-spacing: 0.22em;
+        font-weight: 500;
+    }
+
+    .counter {
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        color: #777;
+        letter-spacing: 0.08em;
+    }
+
+    .intro {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+
+        transform: translate(-50%, -50%);
+        text-align: center;
+
+        pointer-events: none;
+        z-index: 4;
+
+        transition:
+            opacity 0.8s ease,
+            transform 0.8s ease;
+    }
+
+    .intro.hidden {
+        opacity: 0;
+        transform: translate(-50%, -54%);
+    }
+
+    .title {
+        margin: 0;
+
+        font-size: clamp(72px, 15vw, 170px);
+        font-weight: 400;
+        letter-spacing: -0.07em;
+        line-height: 0.8;
+    }
+
+    .subtitle {
+        margin-top: 34px;
+
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+
+        color: #777;
     }
 
     .instruction {
-        max-width: 180px;
-        font-size: 10px;
+        position: absolute;
+        left: 34px;
+        bottom: 32px;
+
+        max-width: 260px;
+
+        font-size: 13px;
+        line-height: 1.6;
+        color: #777;
+
+        pointer-events: none;
+        z-index: 5;
+
+        transition: opacity 0.6s ease;
+    }
+
+    .instruction.hidden {
+        opacity: 0;
     }
 
     .controls {
-        flex-direction: column;
+        position: absolute;
+        right: 34px;
+        bottom: 32px;
+
+        display: flex;
+        gap: 10px;
+
+        z-index: 6;
     }
-}
+
+    button {
+        appearance: none;
+
+        border: 1px solid #aaa;
+        background: rgba(245, 244, 239, 0.8);
+
+        color: #333;
+
+        padding: 12px 17px;
+
+        font-family: "Courier New", monospace;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+
+        cursor: pointer;
+
+        transition:
+            background 0.2s ease,
+            color 0.2s ease,
+            border-color 0.2s ease;
+    }
+
+    button:hover {
+        background: #111;
+        color: #f5f4ef;
+        border-color: #111;
+    }
+
+    button:active {
+        transform: translateY(1px);
+    }
+
+    .gallery-link {
+        position: absolute;
+        left: 50%;
+        bottom: 34px;
+
+        transform: translateX(-50%);
+
+        font-family: "Courier New", monospace;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+
+        color: #999;
+
+        pointer-events: none;
+        z-index: 5;
+
+        opacity: 0;
+        transition: opacity 0.6s ease;
+    }
+
+    .gallery-link.visible {
+        opacity: 1;
+    }
+
+    @media (max-width: 600px) {
+
+        .top {
+            top: 22px;
+            left: 22px;
+            right: 22px;
+        }
+
+        .wordmark {
+            font-size: 15px;
+        }
+
+        .counter {
+            font-size: 12px;
+        }
+
+        .title {
+            font-size: 21vw;
+        }
+
+        .subtitle {
+            margin-top: 25px;
+            font-size: 10px;
+            letter-spacing: 0.18em;
+        }
+
+        .instruction {
+            left: 22px;
+            bottom: 25px;
+            max-width: 190px;
+            font-size: 12px;
+        }
+
+        .controls {
+            right: 22px;
+            bottom: 25px;
+
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        button {
+            padding: 10px 13px;
+            font-size: 10px;
+        }
+
+        .gallery-link {
+            bottom: 19px;
+            display: none;
+        }
+    }
 </style>
 </head>
 
@@ -151,193 +250,298 @@ button:hover {
 
 <canvas id="canvas"></canvas>
 
-<div class="interface">
+<div class="top">
+    <div class="wordmark">TRACE</div>
+    <div class="counter" id="counter">0000</div>
+</div>
 
-    <div class="top">
-        <div class="title">TRACE</div>
-        <div class="number" id="counter">0000</div>
+<div class="intro" id="intro">
+    <h1 class="title">TRACE</h1>
+
+    <div class="subtitle">
+        gesture / algorithm / line
     </div>
+</div>
 
-    <div class="center" id="intro">
-        <h1>TRACE</h1>
-        <p>gesture / algorithm / line</p>
-    </div>
+<div class="instruction" id="instruction">
+    Move across the surface.<br>
+    Your gesture becomes a trace.
+</div>
 
-    <div class="bottom">
+<div class="controls">
+    <button id="clearButton" type="button">CLEAR</button>
+    <button id="generateButton" type="button">GENERATE</button>
+</div>
 
-        <div class="instruction">
-            Move across the surface.<br>
-            Your gesture becomes a trace.
-        </div>
-
-        <div class="controls">
-            <button id="clear">Clear</button>
-            <button id="random">Generate</button>
-        </div>
-
-    </div>
-
+<div class="gallery-link" id="galleryLink">
+    gallery / coming next
 </div>
 
 <script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+(() => {
 
-let width;
-let height;
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
 
-let drawing = false;
-let lastX = null;
-let lastY = null;
+    const counter = document.getElementById("counter");
+    const intro = document.getElementById("intro");
+    const instruction = document.getElementById("instruction");
+    const galleryLink = document.getElementById("galleryLink");
 
-let lines = 0;
+    const clearButton = document.getElementById("clearButton");
+    const generateButton = document.getElementById("generateButton");
 
-function resize() {
-    width = canvas.width = window.innerWidth * devicePixelRatio;
-    height = canvas.height = window.innerHeight * devicePixelRatio;
+    let drawing = false;
+    let lastX = 0;
+    let lastY = 0;
 
-    canvas.style.width = window.innerWidth + "px";
-    canvas.style.height = window.innerHeight + "px";
+    let traceCount = 0;
+    let totalMovement = 0;
 
-    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    let width = 0;
+    let height = 0;
 
-    ctx.fillStyle = "#f3f1eb";
-    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-}
+    function resizeCanvas() {
 
-resize();
-window.addEventListener("resize", resize);
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
 
-function updateCounter() {
-    document.getElementById("counter").textContent =
-        String(lines).padStart(4, "0");
-}
+        width = window.innerWidth;
+        height = window.innerHeight;
 
-function draw(x, y, previousX, previousY) {
+        canvas.width = width * ratio;
+        canvas.height = height * ratio;
 
-    if (previousX === null || previousY === null) return;
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
 
-    const dx = x - previousX;
-    const dy = y - previousY;
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-    const distance = Math.sqrt(dx * dx + dy * dy);
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+    }
 
-    const angle = Math.atan2(dy, dx);
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
 
-    const variation =
-        Math.sin(lines * 0.7) * 7 +
-        Math.random() * 4;
+    function updateCounter() {
 
-    const offsetX =
-        Math.cos(angle + Math.PI / 2) * variation;
+        counter.textContent =
+            String(Math.min(traceCount, 9999))
+            .padStart(4, "0");
+    }
 
-    const offsetY =
-        Math.sin(angle + Math.PI / 2) * variation;
+    function drawPoint(x, y, previousX, previousY) {
 
-    ctx.beginPath();
+        const dx = x - previousX;
+        const dy = y - previousY;
 
-    ctx.moveTo(previousX, previousY);
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
-    ctx.quadraticCurveTo(
-        (previousX + x) / 2 + offsetX,
-        (previousY + y) / 2 + offsetY,
-        x,
-        y
+        if (distance < 0.5) {
+            return;
+        }
+
+        totalMovement += distance;
+
+        /*
+         * This is the first small algorithmic intervention.
+         * The line does not exactly follow the gesture.
+         * Its position is subtly displaced according to
+         * movement and a sine-based variation.
+         */
+
+        const angle = Math.atan2(dy, dx);
+
+        const variation =
+            Math.sin(totalMovement * 0.035) *
+            Math.min(distance * 0.22, 7);
+
+        const offsetX =
+            Math.cos(angle + Math.PI / 2) * variation;
+
+        const offsetY =
+            Math.sin(angle + Math.PI / 2) * variation;
+
+        const finalX = x + offsetX;
+        const finalY = y + offsetY;
+
+        const speed = Math.min(distance, 25);
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            previousX,
+            previousY
+        );
+
+        ctx.lineTo(
+            finalX,
+            finalY
+        );
+
+        /*
+         * Faster gestures become slightly thinner.
+         * Slower gestures remain more substantial.
+         */
+
+        ctx.lineWidth =
+            Math.max(
+                0.8,
+                2.6 - speed * 0.045
+            );
+
+        ctx.strokeStyle = "#111";
+
+        ctx.stroke();
+
+        traceCount++;
+        updateCounter();
+    }
+
+    function startDrawing(event) {
+
+        drawing = true;
+
+        const rect = canvas.getBoundingClientRect();
+
+        lastX = event.clientX - rect.left;
+        lastY = event.clientY - rect.top;
+
+        intro.classList.add("hidden");
+        instruction.classList.add("hidden");
+        galleryLink.classList.remove("visible");
+
+        canvas.setPointerCapture(event.pointerId);
+    }
+
+    function draw(event) {
+
+        if (!drawing) {
+            return;
+        }
+
+        const rect = canvas.getBoundingClientRect();
+
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        drawPoint(
+            x,
+            y,
+            lastX,
+            lastY
+        );
+
+        lastX = x;
+        lastY = y;
+    }
+
+    function stopDrawing() {
+
+        if (!drawing) {
+            return;
+        }
+
+        drawing = false;
+
+        /*
+         * The trace is finished.
+         * Later we will let the algorithm
+         * continue transforming it here.
+         */
+
+        if (traceCount > 10) {
+            galleryLink.classList.add("visible");
+        }
+    }
+
+    canvas.addEventListener(
+        "pointerdown",
+        startDrawing
     );
 
-    ctx.lineWidth =
-        Math.max(0.5, Math.min(3.5, distance * 0.08));
+    canvas.addEventListener(
+        "pointermove",
+        draw
+    );
 
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#111";
+    canvas.addEventListener(
+        "pointerup",
+        stopDrawing
+    );
 
-    ctx.stroke();
+    canvas.addEventListener(
+        "pointercancel",
+        stopDrawing
+    );
 
-    lines++;
-    updateCounter();
+    clearButton.addEventListener(
+        "click",
+        () => {
 
-    document.getElementById("intro").style.opacity = "0";
-}
+            ctx.clearRect(
+                0,
+                0,
+                width,
+                height
+            );
 
-function pointerDown(x, y) {
-    drawing = true;
-    lastX = x;
-    lastY = y;
-}
+            traceCount = 0;
+            totalMovement = 0;
 
-function pointerMove(x, y) {
-    if (!drawing) return;
+            updateCounter();
 
-    draw(x, y, lastX, lastY);
+            intro.classList.remove("hidden");
+            instruction.classList.remove("hidden");
+            galleryLink.classList.remove("visible");
+        }
+    );
 
-    lastX = x;
-    lastY = y;
-}
+    generateButton.addEventListener(
+        "click",
+        () => {
 
-function pointerUp() {
-    drawing = false;
-    lastX = null;
-    lastY = null;
-}
+            intro.classList.add("hidden");
+            instruction.classList.add("hidden");
 
-canvas.addEventListener("mousedown", e => {
-    pointerDown(e.clientX, e.clientY);
-});
+            let x = width * 0.2 + Math.random() * width * 0.6;
+            let y = height * 0.2 + Math.random() * height * 0.6;
 
-canvas.addEventListener("mousemove", e => {
-    pointerMove(e.clientX, e.clientY);
-});
+            let previousX = x;
+            let previousY = y;
 
-window.addEventListener("mouseup", pointerUp);
+            const points = 100 + Math.floor(Math.random() * 100);
 
-canvas.addEventListener("touchstart", e => {
-    e.preventDefault();
+            for (let i = 0; i < points; i++) {
 
-    const touch = e.touches[0];
+                const angle =
+                    Math.random() * Math.PI * 2;
 
-    pointerDown(touch.clientX, touch.clientY);
-}, { passive: false });
+                const distance =
+                    4 + Math.random() * 18;
 
-canvas.addEventListener("touchmove", e => {
-    e.preventDefault();
+                x += Math.cos(angle) * distance;
+                y += Math.sin(angle) * distance;
 
-    const touch = e.touches[0];
+                x = Math.max(0, Math.min(width, x));
+                y = Math.max(0, Math.min(height, y));
 
-    pointerMove(touch.clientX, touch.clientY);
-}, { passive: false });
+                drawPoint(
+                    x,
+                    y,
+                    previousX,
+                    previousY
+                );
 
-canvas.addEventListener("touchend", pointerUp);
+                previousX = x;
+                previousY = y;
+            }
 
-document.getElementById("clear").addEventListener("click", () => {
+            galleryLink.classList.add("visible");
+        }
+    );
 
-    ctx.fillStyle = "#f3f1eb";
-    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-
-    lines = 0;
-    updateCounter();
-
-    document.getElementById("intro").style.opacity = "1";
-});
-
-document.getElementById("random").addEventListener("click", () => {
-
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-
-    let x = centerX;
-    let y = centerY;
-
-    for (let i = 0; i < 120; i++) {
-
-        const previousX = x;
-        const previousY = y;
-
-        x += (Math.random() - 0.5) * 120;
-        y += (Math.random() - 0.5) * 120;
-
-        draw(x, y, previousX, previousY);
-    }
-});
+})();
 </script>
 
 </body>
