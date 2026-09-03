@@ -72,7 +72,8 @@ header{
 }
 
 .brand,
-nav{
+nav,
+.modebar{
   pointer-events:auto;
 }
 
@@ -128,6 +129,42 @@ nav{
   color:var(--soft);
   font-size:9px;
   letter-spacing:.18em;
+}
+
+/* MODES */
+
+.modebar{
+  position:fixed;
+  z-index:20;
+  left:50%;
+  top:91px;
+  transform:translateX(-50%);
+  display:flex;
+  gap:18px;
+}
+
+.mode-btn{
+  position:relative;
+  border:0;
+  background:none;
+  color:var(--soft);
+  padding:3px 0;
+  font-size:8px;
+  letter-spacing:.16em;
+}
+
+.mode-btn.active{
+  color:var(--ink);
+}
+
+.mode-btn.active:after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-5px;
+  height:1px;
+  background:var(--ink);
 }
 
 /* INTRO */
@@ -308,6 +345,13 @@ nav{
   letter-spacing:.03em;
 }
 
+.mode-label{
+  margin-top:6px;
+  color:var(--soft);
+  font-size:7px;
+  letter-spacing:.16em;
+}
+
 .date{
   color:var(--soft);
   font-size:8px;
@@ -405,6 +449,15 @@ nav{
     font-size:8px;
   }
 
+  .modebar{
+    top:112px;
+    gap:14px;
+  }
+
+  .mode-btn{
+    font-size:7px;
+  }
+
   .intro h2{
     font-size:48px;
   }
@@ -458,16 +511,39 @@ nav{
 
 </header>
 
+<div class="modebar">
+
+  <button class="mode-btn active" data-mode="LINE">
+    LINE
+  </button>
+
+  <button class="mode-btn" data-mode="FIELD">
+    FIELD
+  </button>
+
+  <button class="mode-btn" data-mode="FRAGMENT">
+    FRAGMENT
+  </button>
+
+  <button class="mode-btn" data-mode="FLOW">
+    FLOW
+  </button>
+
+</div>
+
 <div class="counter" id="counter">
   TRACE / 000
 </div>
 
 <div class="intro" id="intro">
+
   <h2>TRACE</h2>
+
   <p>
     MOVE ACROSS THE SURFACE.<br>
     YOUR GESTURE BECOMES A TRACE.
   </p>
+
 </div>
 
 <div class="controls">
@@ -493,13 +569,12 @@ nav{
 </div>
 
 
-<!-- GALLERY -->
-
 <section id="gallery">
 
   <div class="gallery-header">
 
     <div>
+
       <div class="gallery-title">
         GALLERY
       </div>
@@ -507,6 +582,7 @@ nav{
       <div class="gallery-subtitle">
         A COLLECTIVE ARCHIVE OF GESTURES
       </div>
+
     </div>
 
     <button class="close-gallery" id="closeGallery">
@@ -523,8 +599,6 @@ nav{
 
 </section>
 
-
-<!-- SAVE MODAL -->
 
 <div class="modal" id="modal">
 
@@ -620,7 +694,7 @@ const galleryGrid =
 
 
 /* =====================================================
-   CANVAS
+   STATE
 ===================================================== */
 
 let W = 0;
@@ -634,8 +708,17 @@ let lastY = 0;
 let lastTime = 0;
 
 let strokes = 0;
-let hue = Math.random() * 360;
 
+let hue =
+  Math.random()*360;
+
+let currentMode =
+  "LINE";
+
+
+/* =====================================================
+   RESIZE
+===================================================== */
 
 function resize(){
 
@@ -645,14 +728,23 @@ function resize(){
       2
     );
 
-  W = window.innerWidth;
-  H = window.innerHeight;
+  W =
+    window.innerWidth;
 
-  canvas.width = W * ratio;
-  canvas.height = H * ratio;
+  H =
+    window.innerHeight;
 
-  canvas.style.width = W + "px";
-  canvas.style.height = H + "px";
+  canvas.width =
+    W*ratio;
+
+  canvas.height =
+    H*ratio;
+
+  canvas.style.width =
+    W+"px";
+
+  canvas.style.height =
+    H+"px";
 
   ctx.setTransform(
     ratio,
@@ -678,7 +770,8 @@ window.addEventListener(
 
 function clearCanvas(){
 
-  ctx.fillStyle = "#f5f3ee";
+  ctx.fillStyle =
+    "#f5f3ee";
 
   ctx.fillRect(
     0,
@@ -687,12 +780,18 @@ function clearCanvas(){
     H
   );
 
-  hasDrawing = false;
-  strokes = 0;
+  hasDrawing =
+    false;
 
-  saveBtn.style.display = "none";
+  strokes =
+    0;
 
-  intro.classList.remove("hidden");
+  saveBtn.style.display =
+    "none";
+
+  intro.classList.remove(
+    "hidden"
+  );
 
   counter.textContent =
     "TRACE / 000";
@@ -700,22 +799,47 @@ function clearCanvas(){
 
 
 /* =====================================================
-   DRAW
+   COLOR
 ===================================================== */
 
-function draw(x,y,time){
+function color(
+  h,
+  light=55,
+  alpha=.75
+){
 
-  if(!drawing) return;
+  return `hsla(
+    ${((h%360)+360)%360},
+    78%,
+    ${light}%,
+    ${alpha}
+  )`;
+}
 
-  const dx = x-lastX;
-  const dy = y-lastY;
+
+/* =====================================================
+   LINE
+===================================================== */
+
+function drawLine(
+  x,
+  y,
+  time
+){
+
+  const dx =
+    x-lastX;
+
+  const dy =
+    y-lastY;
 
   const distance =
     Math.sqrt(
-      dx*dx + dy*dy
+      dx*dx+dy*dy
     );
 
-  if(distance < 1) return;
+  if(distance<1)
+    return;
 
   const dt =
     Math.max(
@@ -727,7 +851,10 @@ function draw(x,y,time){
     distance/dt;
 
   const angle =
-    Math.atan2(dy,dx);
+    Math.atan2(
+      dy,
+      dx
+    );
 
   const nx =
     -Math.sin(angle);
@@ -737,11 +864,11 @@ function draw(x,y,time){
 
   const wave =
     Math.sin(
-      time*.012 +
+      time*.012+
       distance*.08
-    ) *
+    )*
     (
-      2 +
+      2+
       Math.min(
         speed*.7,
         10
@@ -751,9 +878,9 @@ function draw(x,y,time){
   const random =
     (
       Math.random()-.5
-    ) *
+    )*
     (
-      1.5 +
+      1.5+
       Math.min(
         speed*.25,
         5
@@ -761,33 +888,32 @@ function draw(x,y,time){
     );
 
   const px =
-    x + nx*(wave+random);
+    x+
+    nx*(wave+random);
 
   const py =
-    y + ny*(wave+random);
+    y+
+    ny*(wave+random);
 
   const currentHue =
-    (
-      hue +
-      angle*45 +
-      speed*18 +
-      strokes*4
-    ) % 360;
+    hue+
+    angle*45+
+    speed*18+
+    strokes*4;
 
   const alpha =
-    .5 +
+    .5+
     Math.min(
       speed*.025,
       .25
     );
 
   const lineWidth =
-    1.2 +
+    1.2+
     Math.min(
       speed*.18,
       5
     );
-
 
   ctx.beginPath();
 
@@ -797,19 +923,24 @@ function draw(x,y,time){
   );
 
   ctx.quadraticCurveTo(
-    (lastX+px)/2 + nx*wave,
-    (lastY+py)/2 + ny*wave,
+    (lastX+px)/2+
+      nx*wave,
+    (lastY+py)/2+
+      ny*wave,
     px,
     py
   );
 
   ctx.strokeStyle =
-    `hsla(
-      ${currentHue},
-      78%,
-      ${45+Math.min(speed*2,12)}%,
-      ${alpha}
-    )`;
+    color(
+      currentHue,
+      45+
+      Math.min(
+        speed*2,
+        12
+      ),
+      alpha
+    );
 
   ctx.lineWidth =
     lineWidth;
@@ -817,18 +948,13 @@ function draw(x,y,time){
   ctx.lineCap =
     "round";
 
-  ctx.lineJoin =
-    "round";
-
   ctx.stroke();
 
 
-  /* algorithmic echo */
-
-  if(speed > 2){
+  if(speed>2){
 
     const echo =
-      5 +
+      5+
       Math.min(
         speed*.8,
         12
@@ -842,19 +968,20 @@ function draw(x,y,time){
     );
 
     ctx.quadraticCurveTo(
-      (lastX+px)/2 + nx*(wave+echo),
-      (lastY+py)/2 + ny*(wave+echo),
+      (lastX+px)/2+
+        nx*(wave+echo),
+      (lastY+py)/2+
+        ny*(wave+echo),
       px+nx*2,
       py+ny*2
     );
 
     ctx.strokeStyle =
-      `hsla(
-        ${(currentHue+28)%360},
-        82%,
-        58%,
-        ${alpha*.27}
-      )`;
+      color(
+        currentHue+28,
+        58,
+        alpha*.27
+      );
 
     ctx.lineWidth =
       Math.max(
@@ -865,19 +992,427 @@ function draw(x,y,time){
     ctx.stroke();
   }
 
+  lastX =
+    x;
 
-  lastX = x;
-  lastY = y;
-  lastTime = time;
+  lastY =
+    y;
 
-  hasDrawing = true;
+  lastTime =
+    time;
+}
 
-  intro.classList.add("hidden");
 
-  saveBtn.style.display = "block";
+/* =====================================================
+   FIELD
+===================================================== */
+
+function drawField(
+  x,
+  y,
+  time
+){
+
+  const dx =
+    x-lastX;
+
+  const dy =
+    y-lastY;
+
+  const distance =
+    Math.sqrt(
+      dx*dx+
+      dy*dy
+    );
+
+  if(distance<1)
+    return;
+
+  const angle =
+    Math.atan2(
+      dy,
+      dx
+    );
+
+  const speed =
+    distance/
+    Math.max(
+      time-lastTime,
+      1
+    );
+
+  const amount =
+    4+
+    Math.floor(
+      Math.min(
+        speed*3,
+        14
+      )
+    );
+
+  for(
+    let i=0;
+    i<amount;
+    i++
+  ){
+
+    const radius =
+      5+
+      Math.random()*
+      (
+        12+
+        Math.min(
+          speed*12,
+          35
+        )
+      );
+
+    const a =
+      Math.random()*
+      Math.PI*2;
+
+    const px =
+      x+
+      Math.cos(a)*
+      radius;
+
+    const py =
+      y+
+      Math.sin(a)*
+      radius;
+
+    const size =
+      .7+
+      Math.random()*3.5;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      px,
+      py,
+      size,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fillStyle =
+      color(
+        hue+
+        i*18+
+        Math.sin(time*.01)*30,
+        48+
+        Math.random()*18,
+        .25+
+        Math.random()*.45
+      );
+
+    ctx.fill();
+  }
+
+  hue+=.4;
+
+  lastX=x;
+  lastY=y;
+  lastTime=time;
+}
+
+
+/* =====================================================
+   FRAGMENT
+===================================================== */
+
+function drawFragment(
+  x,
+  y,
+  time
+){
+
+  const dx =
+    x-lastX;
+
+  const dy =
+    y-lastY;
+
+  const distance =
+    Math.sqrt(
+      dx*dx+
+      dy*dy
+    );
+
+  if(distance<1)
+    return;
+
+  const angle =
+    Math.atan2(
+      dy,
+      dx
+    );
+
+  const count =
+    2+
+    Math.floor(
+      Math.random()*4
+    );
+
+  for(
+    let i=0;
+    i<count;
+    i++
+  ){
+
+    const offset =
+      (
+        Math.random()-.5
+      )*
+      (
+        15+
+        distance*.5
+      );
+
+    const px =
+      x-
+      Math.cos(angle)*
+      offset;
+
+    const py =
+      y-
+      Math.sin(angle)*
+      offset;
+
+    const length =
+      3+
+      Math.random()*18;
+
+    const size =
+      1+
+      Math.random()*4;
+
+    const rotation =
+      angle+
+      (
+        Math.random()-.5
+      )*
+      1.5;
+
+    ctx.save();
+
+    ctx.translate(
+      px,
+      py
+    );
+
+    ctx.rotate(
+      rotation
+    );
+
+    ctx.fillStyle =
+      color(
+        hue+
+        i*40+
+        distance,
+        42+
+        Math.random()*20,
+        .4+
+        Math.random()*.5
+      );
+
+    ctx.fillRect(
+      -length/2,
+      -size/2,
+      length,
+      size
+    );
+
+    ctx.restore();
+  }
+
+  hue+=
+    distance*.3;
+
+  lastX=x;
+  lastY=y;
+  lastTime=time;
+}
+
+
+/* =====================================================
+   FLOW
+===================================================== */
+
+function drawFlow(
+  x,
+  y,
+  time
+){
+
+  const dx =
+    x-lastX;
+
+  const dy =
+    y-lastY;
+
+  const distance =
+    Math.sqrt(
+      dx*dx+
+      dy*dy
+    );
+
+  if(distance<1)
+    return;
+
+  const angle =
+    Math.atan2(
+      dy,
+      dx
+    );
+
+  const normalX =
+    -Math.sin(angle);
+
+  const normalY =
+    Math.cos(angle);
+
+  const speed =
+    distance/
+    Math.max(
+      time-lastTime,
+      1
+    );
+
+  const waves =
+    3+
+    Math.floor(
+      Math.min(
+        speed*1.5,
+        8
+      )
+    );
+
+  for(
+    let i=0;
+    i<waves;
+    i++
+  ){
+
+    const phase =
+      i*.8+
+      time*.008;
+
+    const offset =
+      Math.sin(
+        phase
+      )*
+      (
+        5+
+        speed*4
+      );
+
+    const bend =
+      Math.cos(
+        phase*.7
+      )*
+      8;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      lastX+
+      normalX*offset,
+      lastY+
+      normalY*offset
+    );
+
+    ctx.quadraticCurveTo(
+
+      (lastX+x)/2+
+      normalX*(offset+bend),
+
+      (lastY+y)/2+
+      normalY*(offset+bend),
+
+      x+
+      normalX*(offset*.6),
+
+      y+
+      normalY*(offset*.6)
+    );
+
+    ctx.strokeStyle =
+      color(
+        hue+
+        i*22+
+        time*.015,
+        50+
+        i*3,
+        .18+
+        .12*i
+      );
+
+    ctx.lineWidth =
+      .8+
+      i*.65+
+      Math.min(
+        speed,
+        3
+      );
+
+    ctx.lineCap =
+      "round";
+
+    ctx.stroke();
+  }
+
+  hue+=
+    .8+
+    speed*.4;
+
+  lastX=x;
+  lastY=y;
+  lastTime=time;
+}
+
+
+/* =====================================================
+   MAIN DRAW
+===================================================== */
+
+function draw(
+  x,
+  y,
+  time
+){
+
+  if(!drawing)
+    return;
+
+  if(currentMode==="LINE"){
+    drawLine(x,y,time);
+  }
+
+  if(currentMode==="FIELD"){
+    drawField(x,y,time);
+  }
+
+  if(currentMode==="FRAGMENT"){
+    drawFragment(x,y,time);
+  }
+
+  if(currentMode==="FLOW"){
+    drawFlow(x,y,time);
+  }
+
+  hasDrawing =
+    true;
+
+  intro.classList.add(
+    "hidden"
+  );
+
+  saveBtn.style.display =
+    "block";
 
   counter.textContent =
-    "TRACE / " +
+    "TRACE / "+
     String(strokes)
       .padStart(3,"0");
 }
@@ -889,57 +1424,109 @@ function draw(x,y,time){
 
 canvas.addEventListener(
   "pointerdown",
-  e => {
+  e=>{
 
     e.preventDefault();
 
-    drawing = true;
+    drawing=true;
 
     canvas.setPointerCapture(
       e.pointerId
     );
 
-    lastX = e.clientX;
-    lastY = e.clientY;
-    lastTime = performance.now();
+    lastX=
+      e.clientX;
+
+    lastY=
+      e.clientY;
+
+    lastTime=
+      performance.now();
 
     strokes++;
 
-    hue =
+    hue=
       (
-        hue +
-        40 +
-        Math.random()*70
-      ) % 360;
+        hue+
+        35+
+        Math.random()*80
+      )%360;
 
-    ctx.beginPath();
+    if(
+      currentMode==="LINE"
+    ){
 
-    ctx.arc(
-      lastX,
-      lastY,
-      1.5,
-      0,
-      Math.PI*2
-    );
+      ctx.beginPath();
 
-    ctx.fillStyle =
-      `hsla(
-        ${hue},
-        80%,
-        50%,
-        .75
-      )`;
+      ctx.arc(
+        lastX,
+        lastY,
+        1.5,
+        0,
+        Math.PI*2
+      );
 
-    ctx.fill();
+      ctx.fillStyle =
+        color(
+          hue,
+          50,
+          .75
+        );
+
+      ctx.fill();
+    }
+
+    if(
+      currentMode==="FIELD"
+    ){
+
+      for(
+        let i=0;
+        i<20;
+        i++
+      ){
+
+        const a=
+          Math.random()*
+          Math.PI*2;
+
+        const r=
+          Math.random()*25;
+
+        ctx.beginPath();
+
+        ctx.arc(
+          lastX+
+            Math.cos(a)*r,
+          lastY+
+            Math.sin(a)*r,
+          1+
+            Math.random()*3,
+          0,
+          Math.PI*2
+        );
+
+        ctx.fillStyle=
+          color(
+            hue+
+            i*10,
+            55,
+            .4
+          );
+
+        ctx.fill();
+      }
+    }
   }
 );
 
 
 canvas.addEventListener(
   "pointermove",
-  e => {
+  e=>{
 
-    if(!drawing) return;
+    if(!drawing)
+      return;
 
     e.preventDefault();
 
@@ -954,7 +1541,7 @@ canvas.addEventListener(
 
 function stop(e){
 
-  drawing = false;
+  drawing=false;
 
   try{
     canvas.releasePointerCapture(
@@ -975,26 +1562,54 @@ canvas.addEventListener(
 
 
 /* =====================================================
-   GENERATE
+   MODE SWITCHING
 ===================================================== */
 
-function generate(){
+document
+  .querySelectorAll(".mode-btn")
+  .forEach(
+    button=>{
 
-  clearCanvas();
+      button.addEventListener(
+        "click",
+        ()=>{
 
-  intro.classList.add("hidden");
+          currentMode =
+            button.dataset.mode;
 
-  hue =
-    Math.random()*360;
+          document
+            .querySelectorAll(
+              ".mode-btn"
+            )
+            .forEach(
+              b=>
+                b.classList.remove(
+                  "active"
+                )
+            );
+
+          button.classList.add(
+            "active"
+          );
+
+          clearCanvas();
+        }
+      );
+    }
+  );
+
+
+/* =====================================================
+   GENERATORS
+===================================================== */
+
+function generateLine(){
 
   const count =
-    5 +
+    5+
     Math.floor(
       Math.random()*7
     );
-
-  const cx = W/2;
-  const cy = H/2;
 
   for(
     let s=0;
@@ -1004,36 +1619,31 @@ function generate(){
 
     strokes++;
 
-    let x =
-      cx +
-      (
-        Math.random()-.5
-      ) *
-      W*.75;
+    let x=
+      Math.random()*W;
 
-    let y =
-      cy +
+    let y=
+      130+
+      Math.random()*
       (
-        Math.random()-.5
-      ) *
-      H*.65;
+        H-260
+      );
 
-    let angle =
-      Math.random() *
+    let angle=
+      Math.random()*
       Math.PI*2;
 
-    const length =
-      120 +
-      Math.random() *
-      Math.min(W,H) *
+    const length=
+      120+
+      Math.random()*
+      Math.min(W,H)*
       .8;
 
-    const steps =
-      100 +
+    const steps=
+      100+
       Math.floor(
         Math.random()*80
       );
-
 
     for(
       let i=0;
@@ -1041,52 +1651,50 @@ function generate(){
       i++
     ){
 
-      const p =
+      const p=
         i/steps;
 
-      angle +=
+      angle+=
         (
           Math.random()-.5
         )*.16;
 
-      const wave =
+      const wave=
         Math.sin(
           p*Math.PI*4+s
-        ) *
+        )*
         (
-          4+p*18
+          4+
+          p*18
         );
 
-      const nx =
+      const nx=
         -Math.sin(angle);
 
-      const ny =
+      const ny=
         Math.cos(angle);
 
-      const nx2 =
-        x +
-        Math.cos(angle) *
-        (length/steps);
+      const nx2=
+        x+
+        Math.cos(angle)*
+        (
+          length/steps
+        );
 
-      const ny2 =
-        y +
-        Math.sin(angle) *
-        (length/steps);
+      const ny2=
+        y+
+        Math.sin(angle)*
+        (
+          length/steps
+        );
 
-      const endX =
-        nx2 +
+      const endX=
+        nx2+
         nx*wave;
 
-      const endY =
-        ny2 +
+      const endY=
+        ny2+
         ny*wave;
-
-      const c =
-        (
-          hue +
-          s*38 +
-          p*120
-        ) % 360;
 
       ctx.beginPath();
 
@@ -1100,36 +1708,316 @@ function generate(){
         endY
       );
 
-      ctx.strokeStyle =
-        `hsla(
-          ${c},
-          80%,
-          ${45+p*12}%,
-          ${.38+p*.38}
-        )`;
+      ctx.strokeStyle=
+        color(
+          hue+
+          s*38+
+          p*120,
+          45+
+          p*12,
+          .35+
+          p*.4
+        );
 
-      ctx.lineWidth =
-        .8 +
-        p*3.8 +
+      ctx.lineWidth=
+        .8+
+        p*3.8+
         Math.random()*1.5;
 
-      ctx.lineCap =
+      ctx.lineCap=
         "round";
 
       ctx.stroke();
 
-      x = nx2;
-      y = ny2;
+      x=nx2;
+      y=ny2;
     }
   }
+}
 
-  hasDrawing = true;
 
-  saveBtn.style.display =
+function generateField(){
+
+  const count=
+    450+
+    Math.floor(
+      Math.random()*500
+    );
+
+  for(
+    let i=0;
+    i<count;
+    i++
+  ){
+
+    const x=
+      Math.random()*W;
+
+    const y=
+      Math.random()*H;
+
+    const cluster=
+      Math.sin(
+        x*.012
+      )+
+      Math.cos(
+        y*.009
+      );
+
+    const size=
+      .6+
+      Math.random()*
+      (
+        1.5+
+        Math.abs(cluster)*3
+      );
+
+    ctx.beginPath();
+
+    ctx.arc(
+      x,
+      y,
+      size,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fillStyle=
+      color(
+        hue+
+        cluster*70+
+        Math.random()*90,
+        45+
+        Math.random()*20,
+        .18+
+        Math.random()*.5
+      );
+
+    ctx.fill();
+  }
+}
+
+
+function generateFragment(){
+
+  const count=
+    180+
+    Math.floor(
+      Math.random()*180
+    );
+
+  for(
+    let i=0;
+    i<count;
+    i++
+  ){
+
+    const x=
+      Math.random()*W;
+
+    const y=
+      Math.random()*H;
+
+    const length=
+      3+
+      Math.random()*25;
+
+    const size=
+      1+
+      Math.random()*6;
+
+    const angle=
+      Math.random()*
+      Math.PI*2;
+
+    ctx.save();
+
+    ctx.translate(
+      x,
+      y
+    );
+
+    ctx.rotate(
+      angle
+    );
+
+    ctx.fillStyle=
+      color(
+        hue+
+        i*.9,
+        42+
+        Math.random()*25,
+        .3+
+        Math.random()*.55
+      );
+
+    ctx.fillRect(
+      -length/2,
+      -size/2,
+      length,
+      size
+    );
+
+    ctx.restore();
+  }
+}
+
+
+function generateFlow(){
+
+  const paths=
+    9+
+    Math.floor(
+      Math.random()*8
+    );
+
+  for(
+    let s=0;
+    s<paths;
+    s++
+  ){
+
+    let x=
+      Math.random()*W;
+
+    let y=
+      Math.random()*H;
+
+    let angle=
+      Math.random()*
+      Math.PI*2;
+
+    const steps=
+      150+
+      Math.floor(
+        Math.random()*100
+      );
+
+    for(
+      let i=0;
+      i<steps;
+      i++
+    ){
+
+      const p=
+        i/steps;
+
+      angle+=
+        Math.sin(
+          i*.045+
+          s
+        )*.055;
+
+      const speed=
+        1+
+        Math.sin(
+          p*Math.PI
+        )*3;
+
+      const nx=
+        -Math.sin(angle);
+
+      const ny=
+        Math.cos(angle);
+
+      const wave=
+        Math.sin(
+          i*.09+
+          s
+        )*
+        (
+          5+
+          p*20
+        );
+
+      const nx2=
+        x+
+        Math.cos(angle)*
+        speed;
+
+      const ny2=
+        y+
+        Math.sin(angle)*
+        speed;
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        x+
+        nx*wave,
+        y+
+        ny*wave
+      );
+
+      ctx.lineTo(
+        nx2+
+        nx*wave,
+        ny2+
+        ny*wave
+      );
+
+      ctx.strokeStyle=
+        color(
+          hue+
+          s*25+
+          p*100,
+          48+
+          p*12,
+          .18+
+          p*.32
+        );
+
+      ctx.lineWidth=
+        .7+
+        p*3;
+
+      ctx.lineCap=
+        "round";
+
+      ctx.stroke();
+
+      x=nx2;
+      y=ny2;
+    }
+  }
+}
+
+
+function generate(){
+
+  clearCanvas();
+
+  intro.classList.add(
+    "hidden"
+  );
+
+  hue=
+    Math.random()*360;
+
+  if(currentMode==="LINE"){
+    generateLine();
+  }
+
+  if(currentMode==="FIELD"){
+    generateField();
+  }
+
+  if(currentMode==="FRAGMENT"){
+    generateFragment();
+  }
+
+  if(currentMode==="FLOW"){
+    generateFlow();
+  }
+
+  hasDrawing=
+    true;
+
+  saveBtn.style.display=
     "block";
 
-  counter.textContent =
-    "TRACE / " +
+  counter.textContent=
+    "TRACE / "+
     String(strokes)
       .padStart(3,"0");
 }
@@ -1141,17 +2029,17 @@ function generate(){
 
 async function showGallery(){
 
-  gallery.style.display =
+  gallery.style.display=
     "block";
 
-  galleryGrid.innerHTML =
+  galleryGrid.innerHTML=
     '<div class="empty">LOADING TRACES…</div>';
 
-  const result =
+  const result=
     await db
       .from("traces")
       .select(
-        "id,trace_number,title,image_data,created_at"
+        "id,trace_number,title,image_data,created_at,mode"
       )
       .order(
         "trace_number",
@@ -1166,64 +2054,63 @@ async function showGallery(){
       result.error
     );
 
-    galleryGrid.innerHTML =
+    galleryGrid.innerHTML=
       '<div class="empty">THE GALLERY COULD NOT BE LOADED.</div>';
 
     return;
   }
 
   renderGallery(
-    result.data || []
+    result.data||[]
   );
 }
 
 
 function renderGallery(items){
 
-  galleryGrid.innerHTML = "";
+  galleryGrid.innerHTML="";
 
   if(!items.length){
 
-    galleryGrid.innerHTML =
+    galleryGrid.innerHTML=
       '<div class="empty">NO TRACES YET — BE THE FIRST.</div>';
 
     return;
   }
 
-
   items.forEach(
-    item => {
+    item=>{
 
-      const card =
+      const card=
         document.createElement(
           "article"
         );
 
-      card.className =
+      card.className=
         "card";
 
 
-      const wrap =
+      const wrap=
         document.createElement(
           "div"
         );
 
-      wrap.className =
+      wrap.className=
         "image-wrap";
 
 
-      const img =
+      const img=
         document.createElement(
           "img"
         );
 
-      img.src =
+      img.src=
         item.image_data;
 
-      img.alt =
+      img.alt=
         item.title;
 
-      img.loading =
+      img.loading=
         "lazy";
 
 
@@ -1232,31 +2119,31 @@ function renderGallery(items){
       );
 
 
-      const info =
+      const info=
         document.createElement(
           "div"
         );
 
-      info.className =
+      info.className=
         "info";
 
 
-      const left =
+      const left=
         document.createElement(
           "div"
         );
 
 
-      const number =
+      const number=
         document.createElement(
           "div"
         );
 
-      number.className =
+      number.className=
         "number";
 
-      number.textContent =
-        "TRACE " +
+      number.textContent=
+        "TRACE "+
         String(
           item.trace_number
         ).padStart(
@@ -1265,16 +2152,29 @@ function renderGallery(items){
         );
 
 
-      const name =
+      const name=
         document.createElement(
           "div"
         );
 
-      name.className =
+      name.className=
         "name";
 
-      name.textContent =
+      name.textContent=
         item.title;
+
+
+      const mode=
+        document.createElement(
+          "div"
+        );
+
+      mode.className=
+        "mode-label";
+
+      mode.textContent=
+        item.mode||
+        "LINE";
 
 
       left.appendChild(
@@ -1285,16 +2185,20 @@ function renderGallery(items){
         name
       );
 
+      left.appendChild(
+        mode
+      );
 
-      const date =
+
+      const date=
         document.createElement(
           "div"
         );
 
-      date.className =
+      date.className=
         "date";
 
-      date.textContent =
+      date.textContent=
         new Date(
           item.created_at
         ).toLocaleDateString(
@@ -1333,29 +2237,24 @@ function renderGallery(items){
 
 
 /* =====================================================
-   SAVE MODAL
+   SAVE
 ===================================================== */
 
 async function openSave(){
 
-  if(!hasDrawing) return;
+  if(!hasDrawing)
+    return;
 
-  /*
-    IMPORTANT:
-    The modal opens immediately.
-    The database is queried afterwards.
-  */
+  message.textContent="";
 
-  message.textContent = "";
-
-  titleInput.value =
+  titleInput.value=
     "TRACE 001";
 
-  modal.style.display =
+  modal.style.display=
     "flex";
 
   setTimeout(
-    () => {
+    ()=>{
       titleInput.focus();
       titleInput.select();
     },
@@ -1363,12 +2262,7 @@ async function openSave(){
   );
 
 
-  /*
-    Try to discover the next
-    gallery number in the background.
-  */
-
-  const result =
+  const result=
     await db
       .from("traces")
       .select("trace_number")
@@ -1382,74 +2276,72 @@ async function openSave(){
 
 
   if(
-    !result.error &&
-    result.data &&
+    !result.error&&
+    result.data&&
     result.data.length
   ){
 
-    const next =
+    const next=
       Number(
-        result.data[0].trace_number
-      ) + 1;
-
-    /*
-      Only replace the proposed
-      title if the user hasn't
-      already typed something.
-    */
+        result.data[0]
+          .trace_number
+      )+1;
 
     if(
-      titleInput.value ===
+      titleInput.value===
       "TRACE 001"
     ){
 
-      titleInput.value =
-        "TRACE " +
+      titleInput.value=
+        "TRACE "+
         String(next)
-          .padStart(3,"0");
+          .padStart(
+            3,
+            "0"
+          );
     }
   }
 }
 
 
+/* =====================================================
+   SAVE ARTWORK
+===================================================== */
+
 async function saveArtwork(){
 
-  const title =
+  const title=
     titleInput.value.trim();
 
   if(!title){
 
-    message.textContent =
+    message.textContent=
       "PLEASE ENTER A NAME.";
 
     return;
   }
 
-  message.textContent =
+  message.textContent=
     "SAVING…";
 
 
-  /*
-    JPEG makes the shared database
-    considerably smaller.
-  */
-
-  const image =
+  const image=
     canvas.toDataURL(
       "image/jpeg",
       .88
     );
 
 
-  const result =
+  const result=
     await db
       .from("traces")
       .insert({
         title:title,
-        image_data:image
+        image_data:image,
+        mode:currentMode
       })
       .select(
-        "id,trace_number,title,created_at"
+        "id,trace_number,title,created_at,mode"
       )
       .single();
 
@@ -1460,24 +2352,24 @@ async function saveArtwork(){
       result.error
     );
 
-    message.textContent =
+    message.textContent=
       "COULD NOT SAVE THE TRACE.";
 
     return;
   }
 
 
-  message.textContent =
+  message.textContent=
     "SAVED.";
 
 
   setTimeout(
-    () => {
+    ()=>{
 
-      modal.style.display =
+      modal.style.display=
         "none";
 
-      saveBtn.style.display =
+      saveBtn.style.display=
         "none";
 
       showGallery();
@@ -1540,8 +2432,8 @@ document
   .getElementById("cancel")
   .addEventListener(
     "click",
-    () => {
-      modal.style.display =
+    ()=>{
+      modal.style.display=
         "none";
     }
   );
@@ -1549,14 +2441,14 @@ document
 
 titleInput.addEventListener(
   "keydown",
-  e => {
+  e=>{
 
-    if(e.key === "Enter"){
+    if(e.key==="Enter"){
       saveArtwork();
     }
 
-    if(e.key === "Escape"){
-      modal.style.display =
+    if(e.key==="Escape"){
+      modal.style.display=
         "none";
     }
   }
@@ -1571,8 +2463,7 @@ document
   .getElementById("galleryBtn")
   .addEventListener(
     "click",
-    () => {
-
+    ()=>{
       showGallery();
 
       document
@@ -1598,9 +2489,9 @@ document
   .getElementById("createBtn")
   .addEventListener(
     "click",
-    () => {
+    ()=>{
 
-      gallery.style.display =
+      gallery.style.display=
         "none";
 
       document
@@ -1626,9 +2517,9 @@ document
   .getElementById("closeGallery")
   .addEventListener(
     "click",
-    () => {
+    ()=>{
 
-      gallery.style.display =
+      gallery.style.display=
         "none";
 
       document
