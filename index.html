@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>TRACE — Algorithmic Gesture</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>TRACE — Gesture / Algorithm / Line</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 * {
@@ -13,13 +16,14 @@
 }
 
 :root {
-  --paper: #f4f2ed;
+  --paper: #f5f3ee;
   --ink: #111111;
-  --muted: #77736d;
-  --line: rgba(17,17,17,.18);
+  --soft: #77736d;
+  --line: rgba(17,17,17,.15);
 }
 
-html, body {
+html,
+body {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -29,7 +33,24 @@ html, body {
 }
 
 body {
-  position: relative;
+  touch-action: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* MAIN */
+
+#app {
+  position: fixed;
+  inset: 0;
+  background: var(--paper);
 }
 
 canvas {
@@ -37,276 +58,400 @@ canvas {
   inset: 0;
   width: 100%;
   height: 100%;
+  display: block;
   touch-action: none;
 }
 
+/* HEADER */
+
 header {
   position: fixed;
-  z-index: 20;
   top: 0;
   left: 0;
   right: 0;
   height: 82px;
-  padding: 27px 38px;
+  padding: 28px 34px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  z-index: 20;
   pointer-events: none;
 }
 
-.logo {
-  font-size: 24px;
+.brand {
+  pointer-events: auto;
+}
+
+.brand h1 {
+  font-size: 15px;
+  letter-spacing: .28em;
+  font-weight: 500;
+}
+
+.brand p {
+  margin-top: 6px;
+  font-size: 9px;
+  letter-spacing: .2em;
+  color: var(--soft);
+}
+
+nav {
+  display: flex;
+  gap: 25px;
+  pointer-events: auto;
+}
+
+.nav-btn {
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-size: 10px;
   letter-spacing: .18em;
-  font-weight: 400;
+  padding: 3px 0;
+  position: relative;
+}
+
+.nav-btn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width .3s ease;
+}
+
+.nav-btn:hover::after,
+.nav-btn.active::after {
+  width: 100%;
 }
 
 .counter {
-  font-family: "Courier New", monospace;
-  font-size: 15px;
+  position: fixed;
+  right: 34px;
+  top: 91px;
+  z-index: 20;
+  font-size: 9px;
   letter-spacing: .18em;
-  color: var(--muted);
+  color: var(--soft);
 }
+
+/* INTRO */
 
 .intro {
   position: fixed;
-  z-index: 10;
   left: 50%;
-  top: 47%;
+  top: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
+  z-index: 10;
   pointer-events: none;
-  transition: opacity .8s ease, transform .8s ease;
+  transition:
+    opacity .8s ease,
+    transform .8s ease;
 }
 
 .intro.hidden {
   opacity: 0;
-  transform: translate(-50%, -54%);
+  transform: translate(-50%, -47%);
 }
 
-.title {
-  font-size: clamp(82px, 18vw, 180px);
-  line-height: .8;
-  letter-spacing: -.07em;
-  font-weight: 500;
+.intro h2 {
+  font-size: clamp(42px, 9vw, 110px);
+  font-weight: 400;
+  letter-spacing: .08em;
+  line-height: .9;
 }
 
-.subtitle {
-  margin-top: 35px;
-  font-family: "Courier New", monospace;
-  font-size: 13px;
-  letter-spacing: .38em;
-  color: #8b8781;
-  text-transform: uppercase;
+.intro p {
+  margin-top: 28px;
+  font-size: 10px;
+  letter-spacing: .18em;
+  color: var(--soft);
 }
 
-.instruction {
-  position: fixed;
-  z-index: 15;
-  left: 38px;
-  bottom: 45px;
-  color: var(--muted);
-  font-size: 16px;
-  line-height: 1.65;
-  pointer-events: none;
-}
+/* CONTROLS */
 
 .controls {
   position: fixed;
+  bottom: 30px;
+  left: 34px;
+  right: 34px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   z-index: 20;
-  right: 38px;
-  bottom: 38px;
+  pointer-events: none;
+}
+
+.control-group {
   display: flex;
-  flex-direction: column;
   gap: 10px;
+  pointer-events: auto;
 }
 
-button {
-  border: 1px solid rgba(17,17,17,.28);
-  background: rgba(244,242,237,.82);
+.action {
+  border: 1px solid var(--line);
+  background: rgba(245,243,238,.82);
   backdrop-filter: blur(8px);
-  color: #55514c;
-  min-width: 184px;
-  padding: 17px 25px;
-  font-family: "Courier New", monospace;
-  font-size: 13px;
-  letter-spacing: .2em;
-  cursor: pointer;
-  transition: .25s ease;
+  padding: 11px 16px;
+  font-size: 9px;
+  letter-spacing: .16em;
+  color: var(--ink);
+  transition: all .25s ease;
 }
 
-button:hover {
-  background: #111;
-  color: #fff;
-  border-color: #111;
+.action:hover {
+  background: var(--ink);
+  color: var(--paper);
 }
 
-button.primary {
-  background: #111;
-  color: #fff;
-  border-color: #111;
+.action.primary {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
 }
 
-button.primary:hover {
-  background: #333;
+.action.primary:hover {
+  opacity: .72;
 }
 
-.navigation {
-  position: fixed;
-  z-index: 30;
-  top: 91px;
-  left: 38px;
-  display: flex;
-  gap: 22px;
-}
-
-.nav-button {
-  min-width: auto;
-  padding: 8px 0;
-  border: none;
-  background: transparent;
-  backdrop-filter: none;
-  color: #99948d;
-  font-size: 11px;
-  letter-spacing: .22em;
-}
-
-.nav-button.active {
-  color: #111;
-}
-
-.gallery {
-  position: fixed;
-  z-index: 12;
-  inset: 125px 30px 30px;
-  overflow-y: auto;
-  padding: 10px 8px 80px;
+.action.save {
   display: none;
-  scrollbar-width: thin;
 }
 
-.gallery.visible {
-  display: block;
+/* GALLERY */
+
+#gallery {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--paper);
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: none;
+  touch-action: pan-y;
+}
+
+.gallery-header {
+  padding: 28px 34px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.gallery-title {
+  font-size: 15px;
+  letter-spacing: .28em;
+  font-weight: 500;
+}
+
+.gallery-subtitle {
+  margin-top: 7px;
+  font-size: 9px;
+  letter-spacing: .18em;
+  color: var(--soft);
+}
+
+.close-gallery {
+  border: 0;
+  background: none;
+  font-size: 10px;
+  letter-spacing: .18em;
 }
 
 .gallery-grid {
+  padding: 35px 34px 80px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 45px 24px;
 }
 
-.gallery-item {
-  position: relative;
-  background: rgba(255,255,255,.32);
-  border: 1px solid rgba(17,17,17,.12);
-  padding: 10px;
-  animation: appear .5s ease both;
+.empty-gallery {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 20vh 0;
+  color: var(--soft);
+  font-size: 10px;
+  letter-spacing: .18em;
 }
 
-.gallery-item canvas {
+.trace-card {
+  min-width: 0;
+}
+
+.trace-image-wrap {
   position: relative;
-  display: block;
   width: 100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  background: var(--paper);
+  aspect-ratio: 1.45 / 1;
+  overflow: hidden;
+  background: #ebe8e0;
 }
 
-.gallery-meta {
+.trace-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .7s ease;
+}
+
+.trace-card:hover .trace-image {
+  transform: scale(1.025);
+}
+
+.trace-info {
+  padding-top: 13px;
   display: flex;
   justify-content: space-between;
-  padding: 12px 3px 3px;
-  font-family: "Courier New", monospace;
-  font-size: 10px;
-  letter-spacing: .14em;
-  color: #77736d;
-  text-transform: uppercase;
+  gap: 15px;
+  align-items: flex-start;
 }
 
-.empty {
-  width: 100%;
-  text-align: center;
-  margin-top: 25vh;
-  font-family: "Courier New", monospace;
+.trace-number {
+  font-size: 8px;
+  letter-spacing: .16em;
+  color: var(--soft);
+  margin-bottom: 5px;
+}
+
+.trace-name {
   font-size: 12px;
-  line-height: 2;
-  letter-spacing: .15em;
-  color: #99948d;
+  letter-spacing: .03em;
 }
 
-@keyframes appear {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.trace-date {
+  font-size: 8px;
+  color: var(--soft);
+  letter-spacing: .08em;
+  text-align: right;
+  white-space: nowrap;
 }
 
-@media (max-width: 600px) {
+/* MODAL */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17,17,17,.18);
+  backdrop-filter: blur(7px);
+}
+
+.modal-box {
+  width: min(480px, calc(100% - 40px));
+  background: var(--paper);
+  padding: 32px;
+  box-shadow: 0 25px 80px rgba(0,0,0,.12);
+}
+
+.modal-label {
+  font-size: 8px;
+  letter-spacing: .2em;
+  color: var(--soft);
+  margin-bottom: 12px;
+}
+
+.modal-box h3 {
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: .05em;
+  margin-bottom: 24px;
+}
+
+#titleInput {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  background: transparent;
+  padding: 11px 0;
+  outline: none;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.modal-message {
+  margin-top: 14px;
+  font-size: 9px;
+  color: #a33;
+  min-height: 12px;
+}
+
+/* MOBILE */
+
+@media (max-width: 700px) {
 
   header {
-    padding: 24px 22px;
+    padding: 22px 20px;
     height: 70px;
   }
 
-  .logo {
-    font-size: 21px;
+  .brand h1 {
+    font-size: 13px;
+  }
+
+  .brand p {
+    font-size: 7px;
+  }
+
+  nav {
+    gap: 15px;
+  }
+
+  .nav-btn {
+    font-size: 8px;
   }
 
   .counter {
-    font-size: 13px;
+    right: 20px;
+    top: 76px;
+    font-size: 8px;
   }
 
-  .intro {
-    width: 100%;
+  .intro h2 {
+    font-size: 48px;
   }
 
-  .title {
-    font-size: 82px;
-  }
-
-  .subtitle {
-    font-size: 10px;
-    letter-spacing: .27em;
-    margin-top: 27px;
-  }
-
-  .instruction {
-    left: 22px;
-    bottom: 28px;
-    font-size: 13px;
-    max-width: 235px;
+  .intro p {
+    font-size: 8px;
+    max-width: 250px;
+    line-height: 1.7;
   }
 
   .controls {
-    right: 22px;
-    bottom: 25px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
   }
 
-  button {
-    min-width: 140px;
-    padding: 14px 15px;
-    font-size: 11px;
+  .action {
+    padding: 10px 12px;
+    font-size: 8px;
   }
 
-  .navigation {
-    top: 75px;
-    left: 22px;
-  }
-
-  .gallery {
-    inset: 108px 15px 15px;
+  .gallery-header {
+    padding: 22px 20px;
   }
 
   .gallery-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    padding: 25px 20px 70px;
+    grid-template-columns: 1fr;
+    gap: 35px;
   }
 
-  .gallery-meta {
-    font-size: 8px;
+  .trace-info {
+    padding-top: 11px;
   }
 }
 </style>
@@ -314,490 +459,1434 @@ button.primary:hover {
 
 <body>
 
-<canvas id="canvas"></canvas>
+<div id="app">
 
-<header>
-  <div class="logo">TRACE</div>
-  <div class="counter" id="counter">0000</div>
-</header>
+  <canvas id="canvas"></canvas>
 
-<nav class="navigation">
-  <button class="nav-button active" id="createTab">CREATE</button>
-  <button class="nav-button" id="galleryTab">GALLERY</button>
-</nav>
+  <header>
 
-<section class="intro" id="intro">
-  <div class="title">TRACE</div>
-  <div class="subtitle">GESTURE / ALGORITHM / LINE</div>
-</section>
+    <div class="brand">
+      <h1>TRACE</h1>
+      <p>GESTURE / ALGORITHM / LINE</p>
+    </div>
 
-<div class="instruction" id="instruction">
-  Move across the surface.<br>
-  Your gesture becomes a trace.
-</div>
+    <nav>
+      <button class="nav-btn active" id="createBtn">
+        CREATE
+      </button>
 
-<div class="controls" id="controls">
-  <button class="primary" id="clearButton">CLEAR</button>
-  <button id="generateButton">GENERATE</button>
-</div>
+      <button class="nav-btn" id="galleryBtn">
+        GALLERY
+      </button>
+    </nav>
 
-<section class="gallery" id="gallery">
-  <div class="gallery-grid" id="galleryGrid"></div>
-  <div class="empty" id="emptyGallery">
-    NO TRACES YET<br><br>
-    CREATE A GESTURE TO BEGIN
+  </header>
+
+  <div class="counter" id="counter">
+    TRACE / 000
   </div>
+
+  <div class="intro" id="intro">
+
+    <h2>TRACE</h2>
+
+    <p>
+      MOVE ACROSS THE SURFACE.<br>
+      YOUR GESTURE BECOMES A TRACE.
+    </p>
+
+  </div>
+
+  <div class="controls">
+
+    <div class="control-group">
+
+      <button class="action" id="clearBtn">
+        CLEAR
+      </button>
+
+      <button class="action" id="generateBtn">
+        GENERATE
+      </button>
+
+    </div>
+
+    <button class="action primary save" id="saveBtn">
+      SAVE TRACE
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- GALLERY -->
+
+<section id="gallery">
+
+  <div class="gallery-header">
+
+    <div>
+
+      <div class="gallery-title">
+        GALLERY
+      </div>
+
+      <div class="gallery-subtitle">
+        A COLLECTIVE ARCHIVE OF GESTURES
+      </div>
+
+    </div>
+
+    <button class="close-gallery" id="closeGallery">
+      CLOSE ×
+    </button>
+
+  </div>
+
+  <div class="gallery-grid" id="galleryGrid">
+
+    <div class="empty-gallery">
+      LOADING TRACES…
+    </div>
+
+  </div>
+
 </section>
+
+
+<!-- SAVE MODAL -->
+
+<div class="modal" id="saveModal">
+
+  <div class="modal-box">
+
+    <div class="modal-label">
+      NEW WORK
+    </div>
+
+    <h3>
+      Name your trace
+    </h3>
+
+    <input
+      id="titleInput"
+      type="text"
+      maxlength="80"
+      autocomplete="off"
+      spellcheck="false"
+    >
+
+    <div
+      class="modal-message"
+      id="modalMessage">
+    </div>
+
+    <div class="modal-actions">
+
+      <button class="action" id="cancelSave">
+        CANCEL
+      </button>
+
+      <button class="action primary" id="confirmSave">
+        SAVE
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
 
 <script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
 
-const intro = document.getElementById("intro");
-const instruction = document.getElementById("instruction");
-const counter = document.getElementById("counter");
+/* =========================================================
+   SUPABASE
+========================================================= */
 
-const clearButton = document.getElementById("clearButton");
-const generateButton = document.getElementById("generateButton");
+const SUPABASE_URL =
+  "https://xmhrmpbqmivbqhhrixvu.supabase.co";
 
-const createTab = document.getElementById("createTab");
-const galleryTab = document.getElementById("galleryTab");
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_9WsX5CWWMeRnBs-sLIYvKA_l_8djSy0";
 
-const controls = document.getElementById("controls");
-const gallery = document.getElementById("gallery");
-const galleryGrid = document.getElementById("galleryGrid");
-const emptyGallery = document.getElementById("emptyGallery");
+const db =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
 
-let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+const canvas =
+  document.getElementById("canvas");
+
+const ctx =
+  canvas.getContext("2d");
+
+let width = 0;
+let height = 0;
 
 let drawing = false;
-let points = [];
-let totalMarks = 0;
-let gestureNumber = 0;
+let hasDrawing = false;
 
-let hue = Math.random() * 360;
-let lastPoint = null;
+let lastX = 0;
+let lastY = 0;
 let lastTime = 0;
-let gestureStarted = false;
 
-const paper = "#f4f2ed";
+let strokePoints = [];
+let strokeCount = 0;
 
-function resize() {
-  dpr = Math.min(window.devicePixelRatio || 1, 2);
+let hueBase =
+  Math.random() * 360;
 
-  canvas.width = window.innerWidth * dpr;
-  canvas.height = window.innerHeight * dpr;
+const intro =
+  document.getElementById("intro");
 
-  canvas.style.width = window.innerWidth + "px";
-  canvas.style.height = window.innerHeight + "px";
+const saveBtn =
+  document.getElementById("saveBtn");
 
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+const counter =
+  document.getElementById("counter");
+
+
+function resizeCanvas() {
+
+  const ratio =
+    Math.min(
+      window.devicePixelRatio || 1,
+      2
+    );
+
+  width =
+    window.innerWidth;
+
+  height =
+    window.innerHeight;
+
+  canvas.width =
+    width * ratio;
+
+  canvas.height =
+    height * ratio;
+
+  canvas.style.width =
+    width + "px";
+
+  canvas.style.height =
+    height + "px";
+
+  ctx.setTransform(
+    ratio,
+    0,
+    0,
+    ratio,
+    0,
+    0
+  );
+
+  ctx.fillStyle =
+    "#f5f3ee";
+
+  ctx.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
 }
 
-resize();
-window.addEventListener("resize", resize);
 
-function clearCanvas(save = false) {
+resizeCanvas();
 
-  ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+window.addEventListener(
+  "resize",
+  resizeCanvas
+);
 
-  if (save && points.length > 5) {
-    saveGesture();
-  }
 
-  points = [];
-  lastPoint = null;
-  drawing = false;
+/* =========================================================
+   CLEAR
+========================================================= */
 
-  updateCounter();
+function clearCanvas() {
 
-  intro.classList.remove("hidden");
-  instruction.style.opacity = "1";
+  ctx.fillStyle =
+    "#f5f3ee";
+
+  ctx.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+  hasDrawing = false;
+
+  strokeCount = 0;
+
+  strokePoints = [];
+
+  saveBtn.style.display =
+    "none";
+
+  intro.classList.remove(
+    "hidden"
+  );
+
+  counter.textContent =
+    "TRACE / 000";
 }
 
-function updateCounter() {
-  counter.textContent = String(totalMarks).padStart(4, "0");
-}
 
-function distance(a, b) {
-  return Math.hypot(a.x - b.x, a.y - b.y);
-}
+/* =========================================================
+   ALGORITHMIC DRAWING
+========================================================= */
 
-function getPoint(event) {
-
-  const rect = canvas.getBoundingClientRect();
-
-  return {
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top,
-    time: performance.now()
-  };
-}
-
-function startGesture(event) {
-
-  if (gallery.classList.contains("visible")) return;
-
-  drawing = true;
-  gestureStarted = true;
-
-  intro.classList.add("hidden");
-  instruction.style.opacity = "0";
-
-  const p = getPoint(event);
-
-  points = [p];
-  lastPoint = p;
-  lastTime = p.time;
-
-  hue = (hue + 47 + Math.random() * 80) % 360;
-
-  canvas.setPointerCapture?.(event.pointerId);
-}
-
-function drawGesture(event) {
+function drawGesture(
+  x,
+  y,
+  time
+) {
 
   if (!drawing) return;
 
-  const p = getPoint(event);
+  const dx =
+    x - lastX;
 
-  const prev = lastPoint;
-  const dt = Math.max(8, p.time - lastTime);
+  const dy =
+    y - lastY;
 
-  const dx = p.x - prev.x;
-  const dy = p.y - prev.y;
+  const distance =
+    Math.sqrt(
+      dx * dx +
+      dy * dy
+    );
 
-  const speed = Math.min(3, Math.hypot(dx, dy) / dt * 10);
+  if (distance < 1) return;
 
-  const angle = Math.atan2(dy, dx);
-
-  const wiggle =
-    Math.sin(points.length * 0.22 + hue) *
-    (1.5 + speed * 3);
-
-  const nx = -Math.sin(angle);
-  const ny = Math.cos(angle);
-
-  const ax = p.x + nx * wiggle;
-  const ay = p.y + ny * wiggle;
-
-  const width =
+  const dt =
     Math.max(
-      .8,
+      time - lastTime,
+      1
+    );
+
+  const speed =
+    distance / dt;
+
+  const angle =
+    Math.atan2(
+      dy,
+      dx
+    );
+
+  const normalX =
+    -Math.sin(angle);
+
+  const normalY =
+    Math.cos(angle);
+
+  const wave =
+    Math.sin(
+      time * 0.012 +
+      distance * 0.08
+    ) *
+    (
+      2 +
       Math.min(
-        8,
-        1.1 + speed * 2.2 + Math.sin(points.length * .08) * .7
+        speed * 0.7,
+        10
       )
     );
 
-  const colorShift =
-    Math.sin(points.length * .045) * 24;
+  const random =
+    (
+      Math.random() - 0.5
+    ) *
+    (
+      1.5 +
+      Math.min(
+        speed * 0.25,
+        5
+      )
+    );
 
-  const color =
-    `hsl(${(hue + colorShift + 360) % 360}, 72%, 48%)`;
+  const bendX =
+    normalX *
+    (
+      wave + random
+    );
 
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+  const bendY =
+    normalY *
+    (
+      wave + random
+    );
 
-  // Main algorithmic line
+  const drawX =
+    x + bendX;
+
+  const drawY =
+    y + bendY;
+
+  const hue =
+    (
+      hueBase +
+      angle * 45 +
+      speed * 18 +
+      strokeCount * 3
+    ) % 360;
+
+  const saturation =
+    72 +
+    Math.min(
+      speed * 3,
+      20
+    );
+
+  const lightness =
+    42 +
+    Math.min(
+      speed * 2,
+      15
+    );
+
+  const alpha =
+    0.48 +
+    Math.min(
+      speed * 0.025,
+      0.28
+    );
+
+  const lineWidth =
+    1.2 +
+    Math.min(
+      speed * 0.18,
+      5
+    );
+
   ctx.beginPath();
-  ctx.moveTo(prev.x, prev.y);
-  ctx.quadraticCurveTo(ax, ay, p.x, p.y);
 
-  ctx.strokeStyle = color;
-  ctx.globalAlpha = .78;
-  ctx.lineWidth = width;
-  ctx.stroke();
-
-  // Secondary echo
-  const echo =
-    3 +
-    Math.sin(points.length * .13) * 3 +
-    speed * 2;
-
-  ctx.beginPath();
-  ctx.moveTo(prev.x + nx * echo, prev.y + ny * echo);
-  ctx.quadraticCurveTo(
-    ax + nx * echo * 1.5,
-    ay + ny * echo * 1.5,
-    p.x + nx * echo,
-    p.y + ny * echo
+  ctx.moveTo(
+    lastX,
+    lastY
   );
 
-  ctx.globalAlpha = .20;
-  ctx.lineWidth = Math.max(.5, width * .45);
+  ctx.quadraticCurveTo(
+
+    (lastX + drawX) / 2 +
+    normalX * wave,
+
+    (lastY + drawY) / 2 +
+    normalY * wave,
+
+    drawX,
+    drawY
+  );
+
+  ctx.strokeStyle =
+    `hsla(
+      ${hue},
+      ${saturation}%,
+      ${lightness}%,
+      ${alpha}
+    )`;
+
+  ctx.lineWidth =
+    lineWidth;
+
+  ctx.lineCap =
+    "round";
+
+  ctx.lineJoin =
+    "round";
+
   ctx.stroke();
 
-  // Random algorithmic fragments
-  if (Math.random() < .075) {
 
-    const length = 5 + Math.random() * 18;
-    const offset = (Math.random() - .5) * 12;
+  /* ALGORITHMIC ECHO */
+
+  if (speed > 2) {
+
+    const echo =
+      5 +
+      Math.min(
+        speed * 0.8,
+        12
+      );
 
     ctx.beginPath();
 
     ctx.moveTo(
-      p.x + nx * offset,
-      p.y + ny * offset
+      lastX,
+      lastY
     );
 
-    ctx.lineTo(
-      p.x + nx * offset + Math.cos(angle) * length,
-      p.y + ny * offset + Math.sin(angle) * length
+    ctx.quadraticCurveTo(
+
+      (lastX + drawX) / 2 +
+      normalX *
+      (wave + echo),
+
+      (lastY + drawY) / 2 +
+      normalY *
+      (wave + echo),
+
+      drawX +
+      normalX * 2,
+
+      drawY +
+      normalY * 2
     );
 
-    ctx.globalAlpha = .35;
-    ctx.lineWidth = Math.max(.5, width * .55);
+    ctx.strokeStyle =
+      `hsla(
+        ${(hue + 25) % 360},
+        80%,
+        55%,
+        ${alpha * .28}
+      )`;
+
+    ctx.lineWidth =
+      Math.max(
+        .5,
+        lineWidth * .45
+      );
+
     ctx.stroke();
   }
 
-  ctx.globalAlpha = 1;
 
-  points.push({
-    x: p.x,
-    y: p.y,
-    time: p.time,
-    speed
+  strokePoints.push({
+
+    x: drawX,
+    y: drawY,
+    speed: speed,
+    angle: angle,
+    time: time
+
   });
 
-  totalMarks++;
-  updateCounter();
 
-  lastPoint = p;
-  lastTime = p.time;
+  lastX = x;
+  lastY = y;
+  lastTime = time;
+
+  hasDrawing = true;
+
+  intro.classList.add(
+    "hidden"
+  );
+
+  saveBtn.style.display =
+    "block";
+
+  counter.textContent =
+    "TRACE / " +
+    String(strokeCount)
+      .padStart(3, "0");
 }
 
-function endGesture(event) {
+
+/* =========================================================
+   POINTER EVENTS
+========================================================= */
+
+canvas.addEventListener(
+  "pointerdown",
+  function(e) {
+
+    e.preventDefault();
+
+    drawing = true;
+
+    canvas.setPointerCapture(
+      e.pointerId
+    );
+
+    lastX =
+      e.clientX;
+
+    lastY =
+      e.clientY;
+
+    lastTime =
+      performance.now();
+
+    strokePoints = [];
+
+    strokeCount++;
+
+    hueBase =
+      (
+        hueBase +
+        37 +
+        Math.random() * 70
+      ) % 360;
+
+
+    ctx.beginPath();
+
+    ctx.arc(
+      lastX,
+      lastY,
+      1.5,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fillStyle =
+      `hsla(
+        ${hueBase},
+        80%,
+        50%,
+        .75
+      )`;
+
+    ctx.fill();
+
+  }
+);
+
+
+canvas.addEventListener(
+  "pointermove",
+  function(e) {
+
+    if (!drawing) return;
+
+    e.preventDefault();
+
+    drawGesture(
+      e.clientX,
+      e.clientY,
+      performance.now()
+    );
+
+  }
+);
+
+
+function stopDrawing(e) {
 
   if (!drawing) return;
 
   drawing = false;
 
   try {
-    canvas.releasePointerCapture?.(event.pointerId);
-  } catch(e) {}
 
-  if (points.length > 8) {
-    saveGesture();
-  }
+    canvas.releasePointerCapture(
+      e.pointerId
+    );
 
-  gestureStarted = false;
+  } catch (_) {}
+
 }
 
-canvas.addEventListener("pointerdown", startGesture);
-canvas.addEventListener("pointermove", drawGesture);
-canvas.addEventListener("pointerup", endGesture);
-canvas.addEventListener("pointercancel", endGesture);
 
-function generate() {
+canvas.addEventListener(
+  "pointerup",
+  stopDrawing
+);
 
-  if (gallery.classList.contains("visible")) return;
+canvas.addEventListener(
+  "pointercancel",
+  stopDrawing
+);
 
-  intro.classList.add("hidden");
-  instruction.style.opacity = "0";
+canvas.addEventListener(
+  "pointerleave",
+  function(e) {
 
-  const margin = 90;
-
-  let x = margin + Math.random() * (window.innerWidth - margin * 2);
-  let y = margin + Math.random() * (window.innerHeight - margin * 2);
-
-  let angle = Math.random() * Math.PI * 2;
-
-  const count = 100 + Math.floor(Math.random() * 130);
-
-  hue = Math.random() * 360;
-
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-
-  for (let i = 0; i < count; i++) {
-
-    const oldX = x;
-    const oldY = y;
-
-    angle +=
-      (Math.random() - .5) * .38 +
-      Math.sin(i * .08) * .025;
-
-    const step =
-      3 +
-      Math.random() * 7;
-
-    x += Math.cos(angle) * step;
-    y += Math.sin(angle) * step;
-
-    if (x < margin || x > window.innerWidth - margin) {
-      angle = Math.PI - angle;
+    if (e.buttons === 0) {
+      stopDrawing(e);
     }
 
-    if (y < margin || y > window.innerHeight - margin) {
-      angle = -angle;
+  }
+);
+
+
+/* =========================================================
+   GENERATIVE MODE
+========================================================= */
+
+function generateArtwork() {
+
+  clearCanvas();
+
+  intro.classList.add(
+    "hidden"
+  );
+
+  const centerX =
+    width / 2;
+
+  const centerY =
+    height / 2;
+
+  const amount =
+    4 +
+    Math.floor(
+      Math.random() * 8
+    );
+
+  hueBase =
+    Math.random() * 360;
+
+
+  for (
+    let s = 0;
+    s < amount;
+    s++
+  ) {
+
+    strokeCount++;
+
+    let x =
+      centerX +
+      (
+        Math.random() - .5
+      ) *
+      width *
+      .65;
+
+    let y =
+      centerY +
+      (
+        Math.random() - .5
+      ) *
+      height *
+      .55;
+
+    let angle =
+      Math.random() *
+      Math.PI *
+      2;
+
+    let length =
+      100 +
+      Math.random() *
+      Math.min(
+        width,
+        height
+      ) *
+      .8;
+
+    let steps =
+      80 +
+      Math.floor(
+        Math.random() * 100
+      );
+
+
+    for (
+      let i = 0;
+      i < steps;
+      i++
+    ) {
+
+      const progress =
+        i / steps;
+
+      const speed =
+        1.5 +
+        progress * 5;
+
+      angle +=
+        (
+          Math.random() - .5
+        ) *
+        .16;
+
+      const wave =
+        Math.sin(
+          progress *
+          Math.PI *
+          4 +
+          s
+        ) *
+        (
+          4 +
+          progress * 16
+        );
+
+      const nx =
+        -Math.sin(angle);
+
+      const ny =
+        Math.cos(angle);
+
+      const nextX =
+        x +
+        Math.cos(angle) *
+        (length / steps) +
+        nx *
+        wave *
+        .035;
+
+      const nextY =
+        y +
+        Math.sin(angle) *
+        (length / steps) +
+        ny *
+        wave *
+        .035;
+
+      const hue =
+        (
+          hueBase +
+          s * 38 +
+          progress * 110 +
+          Math.sin(
+            progress * 8
+          ) *
+          25
+        ) % 360;
+
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        x,
+        y
+      );
+
+      ctx.lineTo(
+        nextX +
+        nx * wave,
+        nextY +
+        ny * wave
+      );
+
+      ctx.strokeStyle =
+        `hsla(
+          ${hue},
+          78%,
+          ${45 + progress * 12}%,
+          ${.35 + progress * .4}
+        )`;
+
+      ctx.lineWidth =
+        .8 +
+        progress * 3.5 +
+        Math.random() * 1.8;
+
+      ctx.lineCap =
+        "round";
+
+      ctx.stroke();
+
+      x = nextX;
+      y = nextY;
+    }
+  }
+
+
+  hasDrawing = true;
+
+  saveBtn.style.display =
+    "block";
+
+  counter.textContent =
+    "TRACE / " +
+    String(strokeCount)
+      .padStart(3, "0");
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+document
+  .getElementById("clearBtn")
+  .addEventListener(
+    "click",
+    clearCanvas
+  );
+
+document
+  .getElementById("generateBtn")
+  .addEventListener(
+    "click",
+    generateArtwork
+  );
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+const gallery =
+  document.getElementById(
+    "gallery"
+  );
+
+const galleryGrid =
+  document.getElementById(
+    "galleryGrid"
+  );
+
+
+document
+  .getElementById("createBtn")
+  .addEventListener(
+    "click",
+    function() {
+
+      gallery.style.display =
+        "none";
+
+      document
+        .getElementById(
+          "createBtn"
+        )
+        .classList.add(
+          "active"
+        );
+
+      document
+        .getElementById(
+          "galleryBtn"
+        )
+        .classList.remove(
+          "active"
+        );
+
+    }
+  );
+
+
+document
+  .getElementById("galleryBtn")
+  .addEventListener(
+    "click",
+    function() {
+
+      showGallery();
+
+      document
+        .getElementById(
+          "galleryBtn"
+        )
+        .classList.add(
+          "active"
+        );
+
+      document
+        .getElementById(
+          "createBtn"
+        )
+        .classList.remove(
+          "active"
+        );
+
+    }
+  );
+
+
+document
+  .getElementById("closeGallery")
+  .addEventListener(
+    "click",
+    function() {
+
+      gallery.style.display =
+        "none";
+
+      document
+        .getElementById(
+          "createBtn"
+        )
+        .classList.add(
+          "active"
+        );
+
+      document
+        .getElementById(
+          "galleryBtn"
+        )
+        .classList.remove(
+          "active"
+        );
+
+    }
+  );
+
+
+/* =========================================================
+   GALLERY
+========================================================= */
+
+async function showGallery() {
+
+  gallery.style.display =
+    "block";
+
+  galleryGrid.innerHTML =
+    '<div class="empty-gallery">LOADING TRACES…</div>';
+
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("traces")
+      .select(
+        "id, trace_number, title, image_data, created_at"
+      )
+      .order(
+        "trace_number",
+        {
+          ascending: false
+        }
+      );
+
+
+  if (error) {
+
+    console.error(error);
+
+    galleryGrid.innerHTML =
+      '<div class="empty-gallery">THE GALLERY COULD NOT BE LOADED.</div>';
+
+    return;
+  }
+
+
+  renderGallery(
+    data || []
+  );
+}
+
+
+function renderGallery(
+  traces
+) {
+
+  galleryGrid.innerHTML =
+    "";
+
+
+  if (!traces.length) {
+
+    galleryGrid.innerHTML =
+      '<div class="empty-gallery">NO TRACES YET — BE THE FIRST.</div>';
+
+    return;
+  }
+
+
+  traces.forEach(
+    trace => {
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+      card.className =
+        "trace-card";
+
+
+      const imageWrap =
+        document.createElement(
+          "div"
+        );
+
+      imageWrap.className =
+        "trace-image-wrap";
+
+
+      const image =
+        document.createElement(
+          "img"
+        );
+
+      image.className =
+        "trace-image";
+
+      image.src =
+        trace.image_data;
+
+      image.alt =
+        trace.title;
+
+      image.loading =
+        "lazy";
+
+
+      imageWrap.appendChild(
+        image
+      );
+
+
+      const info =
+        document.createElement(
+          "div"
+        );
+
+      info.className =
+        "trace-info";
+
+
+      const left =
+        document.createElement(
+          "div"
+        );
+
+
+      const number =
+        document.createElement(
+          "div"
+        );
+
+      number.className =
+        "trace-number";
+
+      number.textContent =
+        "TRACE " +
+        String(
+          trace.trace_number
+        )
+        .padStart(
+          3,
+          "0"
+        );
+
+
+      const name =
+        document.createElement(
+          "div"
+        );
+
+      name.className =
+        "trace-name";
+
+      name.textContent =
+        trace.title;
+
+
+      left.appendChild(
+        number
+      );
+
+      left.appendChild(
+        name
+      );
+
+
+      const date =
+        document.createElement(
+          "div"
+        );
+
+      date.className =
+        "trace-date";
+
+      date.textContent =
+        formatDate(
+          trace.created_at
+        );
+
+
+      info.appendChild(
+        left
+      );
+
+      info.appendChild(
+        date
+      );
+
+
+      card.appendChild(
+        imageWrap
+      );
+
+      card.appendChild(
+        info
+      );
+
+
+      galleryGrid.appendChild(
+        card
+      );
+
+    }
+  );
+}
+
+
+function formatDate(
+  dateString
+) {
+
+  const date =
+    new Date(
+      dateString
+    );
+
+  return date.toLocaleDateString(
+    "en-GB",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    }
+  );
+}
+
+
+/* =========================================================
+   SAVE MODAL
+========================================================= */
+
+const saveModal =
+  document.getElementById(
+    "saveModal"
+  );
+
+const titleInput =
+  document.getElementById(
+    "titleInput"
+  );
+
+const modalMessage =
+  document.getElementById(
+    "modalMessage"
+  );
+
+
+async function openSaveModal() {
+
+  if (!hasDrawing) return;
+
+  modalMessage.textContent =
+    "";
+
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("traces")
+      .select(
+        "trace_number"
+      )
+      .order(
+        "trace_number",
+        {
+          ascending: false
+        }
+      )
+      .limit(1);
+
+
+  let nextNumber =
+    1;
+
+
+  if (
+    !error &&
+    data &&
+    data.length
+  ) {
+
+    nextNumber =
+      Number(
+        data[0].trace_number
+      ) + 1;
+
+  }
+
+
+  titleInput.value =
+    "TRACE " +
+    String(
+      nextNumber
+    ).padStart(
+      3,
+      "0"
+    );
+
+
+  saveModal.style.display =
+    "flex";
+
+
+  setTimeout(
+    () => {
+
+      titleInput.focus();
+      titleInput.select();
+
+    },
+    100
+  );
+}
+
+
+document
+  .getElementById("saveBtn")
+  .addEventListener(
+    "click",
+    openSaveModal
+  );
+
+
+document
+  .getElementById("cancelSave")
+  .addEventListener(
+    "click",
+    function() {
+
+      saveModal.style.display =
+        "none";
+
+    }
+  );
+
+
+/* =========================================================
+   CONFIRM SAVE
+========================================================= */
+
+document
+  .getElementById("confirmSave")
+  .addEventListener(
+    "click",
+    saveArtwork
+  );
+
+
+titleInput.addEventListener(
+  "keydown",
+  function(e) {
+
+    if (
+      e.key === "Enter"
+    ) {
+
+      saveArtwork();
+
     }
 
-    const color =
-      `hsl(${(hue + i * .9) % 360}, 72%, 48%)`;
+    if (
+      e.key === "Escape"
+    ) {
 
-    ctx.beginPath();
-    ctx.moveTo(oldX, oldY);
-    ctx.quadraticCurveTo(
-      (oldX + x) / 2 + (Math.random() - .5) * 15,
-      (oldY + y) / 2 + (Math.random() - .5) * 15,
-      x,
-      y
-    );
+      saveModal.style.display =
+        "none";
 
-    ctx.strokeStyle = color;
-    ctx.globalAlpha = .65;
-    ctx.lineWidth = 1 + Math.random() * 3;
-    ctx.stroke();
+    }
 
-    totalMarks++;
+  }
+);
+
+
+async function saveArtwork() {
+
+  const title =
+    titleInput.value.trim();
+
+
+  if (!title) {
+
+    modalMessage.textContent =
+      "PLEASE ENTER A NAME.";
+
+    return;
   }
 
-  ctx.globalAlpha = 1;
-  updateCounter();
 
-  setTimeout(saveGenerated, 250);
-}
+  modalMessage.textContent =
+    "SAVING…";
 
-function saveGenerated() {
 
-  const image = canvas.toDataURL("image/png");
-
-  const gallery = getGallery();
-
-  gestureNumber++;
-
-  gallery.unshift({
-    id: gestureNumber,
-    image: image,
-    type: "generated"
-  });
-
-  saveGallery(gallery);
-}
-
-function saveGesture() {
-
-  if (points.length < 8) return;
-
-  const image = canvas.toDataURL("image/png");
-
-  const galleryData = getGallery();
-
-  gestureNumber++;
-
-  galleryData.unshift({
-    id: gestureNumber,
-    image: image,
-    type: "gesture"
-  });
-
-  saveGallery(galleryData);
-}
-
-function getGallery() {
-
-  try {
-    return JSON.parse(
-      localStorage.getItem("trace-gallery") || "[]"
+  const imageData =
+    canvas.toDataURL(
+      "image/jpeg",
+      0.88
     );
-  } catch(e) {
-    return [];
+
+
+  const {
+    data,
+    error
+  } =
+    await db
+      .from("traces")
+      .insert({
+        title: title,
+        image_data: imageData
+      })
+      .select(
+        "id, trace_number, title, created_at"
+      )
+      .single();
+
+
+  if (error) {
+
+    console.error(error);
+
+    modalMessage.textContent =
+      "COULD NOT SAVE THE TRACE.";
+
+    return;
   }
+
+
+  modalMessage.textContent =
+    "SAVED.";
+
+
+  setTimeout(
+    () => {
+
+      saveModal.style.display =
+        "none";
+
+      saveBtn.style.display =
+        "none";
+
+      showGallery();
+
+
+      document
+        .getElementById(
+          "galleryBtn"
+        )
+        .classList.add(
+          "active"
+        );
+
+
+      document
+        .getElementById(
+          "createBtn"
+        )
+        .classList.remove(
+          "active"
+        );
+
+    },
+    500
+  );
 }
 
-function saveGallery(data) {
 
-  // Keep the gallery reasonably small.
-  const limited = data.slice(0, 30);
+/* =========================================================
+   INITIAL STATE
+========================================================= */
 
-  try {
-    localStorage.setItem(
-      "trace-gallery",
-      JSON.stringify(limited)
-    );
-  } catch(e) {}
-
-  renderGallery();
-}
-
-function renderGallery() {
-
-  const items = getGallery();
-
-  galleryGrid.innerHTML = "";
-
-  emptyGallery.style.display =
-    items.length ? "none" : "block";
-
-  items.forEach(item => {
-
-    const wrapper = document.createElement("div");
-    wrapper.className = "gallery-item";
-
-    const img = document.createElement("img");
-
-    img.src = item.image;
-    img.style.width = "100%";
-    img.style.display = "block";
-    img.style.aspectRatio = "1 / 1";
-    img.style.objectFit = "cover";
-    img.style.background = paper;
-
-    const meta = document.createElement("div");
-    meta.className = "gallery-meta";
-
-    meta.innerHTML = `
-      <span>TRACE ${String(item.id).padStart(4,"0")}</span>
-      <span>${item.type}</span>
-    `;
-
-    wrapper.appendChild(img);
-    wrapper.appendChild(meta);
-
-    galleryGrid.appendChild(wrapper);
-  });
-}
-
-function showCreate() {
-
-  gallery.classList.remove("visible");
-
-  canvas.style.display = "block";
-  controls.style.display = "flex";
-  intro.style.display = "block";
-  instruction.style.display = "block";
-
-  createTab.classList.add("active");
-  galleryTab.classList.remove("active");
-}
-
-function showGallery() {
-
-  gallery.classList.add("visible");
-
-  canvas.style.display = "none";
-  controls.style.display = "none";
-  intro.style.display = "none";
-  instruction.style.display = "none";
-
-  createTab.classList.remove("active");
-  galleryTab.classList.add("active");
-
-  renderGallery();
-}
-
-createTab.addEventListener("click", showCreate);
-galleryTab.addEventListener("click", showGallery);
-
-clearButton.addEventListener("click", () => {
-  clearCanvas(false);
-});
-
-generateButton.addEventListener("click", generate);
-
-renderGallery();
+clearCanvas();
 
 </script>
 
