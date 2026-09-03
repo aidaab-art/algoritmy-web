@@ -2,456 +2,437 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>TRACE — Gesture / Algorithm / Line</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
 }
 
-:root {
-  --paper: #f5f3ee;
-  --ink: #111111;
-  --soft: #77736d;
-  --line: rgba(17,17,17,.15);
+:root{
+  --paper:#f5f3ee;
+  --ink:#111;
+  --soft:#77736d;
+  --border:rgba(17,17,17,.16);
 }
 
-html,
-body {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:Arial,Helvetica,sans-serif;
 }
 
-body {
-  touch-action: none;
+body{
+  touch-action:none;
 }
 
-button,
-input {
-  font: inherit;
+button,input{
+  font:inherit;
 }
 
-button {
-  cursor: pointer;
+button{
+  cursor:pointer;
 }
 
-/* MAIN */
-
-#app {
-  position: fixed;
-  inset: 0;
-  background: var(--paper);
+#app{
+  position:fixed;
+  inset:0;
 }
 
-canvas {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  touch-action: none;
+canvas{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  touch-action:none;
 }
 
 /* HEADER */
 
-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 82px;
-  padding: 28px 34px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  z-index: 20;
-  pointer-events: none;
+header{
+  position:fixed;
+  z-index:20;
+  top:0;
+  left:0;
+  right:0;
+  padding:28px 34px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  pointer-events:none;
 }
 
-.brand {
-  pointer-events: auto;
+.brand,
+nav{
+  pointer-events:auto;
 }
 
-.brand h1 {
-  font-size: 15px;
-  letter-spacing: .28em;
-  font-weight: 500;
+.brand h1{
+  font-size:15px;
+  font-weight:500;
+  letter-spacing:.28em;
 }
 
-.brand p {
-  margin-top: 6px;
-  font-size: 9px;
-  letter-spacing: .2em;
-  color: var(--soft);
+.brand p{
+  margin-top:7px;
+  font-size:9px;
+  letter-spacing:.2em;
+  color:var(--soft);
 }
 
-nav {
-  display: flex;
-  gap: 25px;
-  pointer-events: auto;
+nav{
+  display:flex;
+  gap:26px;
 }
 
-.nav-btn {
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font-size: 10px;
-  letter-spacing: .18em;
-  padding: 3px 0;
-  position: relative;
+.nav-btn{
+  position:relative;
+  border:0;
+  background:none;
+  color:var(--ink);
+  padding:3px 0;
+  font-size:10px;
+  letter-spacing:.18em;
 }
 
-.nav-btn::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -5px;
-  width: 0;
-  height: 1px;
-  background: currentColor;
-  transition: width .3s ease;
+.nav-btn:after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:-5px;
+  width:0;
+  height:1px;
+  background:currentColor;
+  transition:.3s;
 }
 
-.nav-btn:hover::after,
-.nav-btn.active::after {
-  width: 100%;
+.nav-btn.active:after,
+.nav-btn:hover:after{
+  width:100%;
 }
 
-.counter {
-  position: fixed;
-  right: 34px;
-  top: 91px;
-  z-index: 20;
-  font-size: 9px;
-  letter-spacing: .18em;
-  color: var(--soft);
+.counter{
+  position:fixed;
+  z-index:20;
+  right:34px;
+  top:91px;
+  color:var(--soft);
+  font-size:9px;
+  letter-spacing:.18em;
 }
 
 /* INTRO */
 
-.intro {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  z-index: 10;
-  pointer-events: none;
-  transition:
-    opacity .8s ease,
-    transform .8s ease;
+.intro{
+  position:fixed;
+  z-index:10;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  pointer-events:none;
+  transition:.8s ease;
 }
 
-.intro.hidden {
-  opacity: 0;
-  transform: translate(-50%, -47%);
+.intro.hidden{
+  opacity:0;
+  transform:translate(-50%,-47%);
 }
 
-.intro h2 {
-  font-size: clamp(42px, 9vw, 110px);
-  font-weight: 400;
-  letter-spacing: .08em;
-  line-height: .9;
+.intro h2{
+  font-size:clamp(45px,9vw,110px);
+  font-weight:400;
+  letter-spacing:.08em;
+  line-height:.9;
 }
 
-.intro p {
-  margin-top: 28px;
-  font-size: 10px;
-  letter-spacing: .18em;
-  color: var(--soft);
+.intro p{
+  margin-top:28px;
+  color:var(--soft);
+  font-size:10px;
+  letter-spacing:.18em;
+  line-height:1.7;
 }
 
 /* CONTROLS */
 
-.controls {
-  position: fixed;
-  bottom: 30px;
-  left: 34px;
-  right: 34px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  z-index: 20;
-  pointer-events: none;
+.controls{
+  position:fixed;
+  z-index:20;
+  left:34px;
+  right:34px;
+  bottom:30px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  pointer-events:none;
 }
 
-.control-group {
-  display: flex;
-  gap: 10px;
-  pointer-events: auto;
+.control-group{
+  display:flex;
+  gap:10px;
+  pointer-events:auto;
 }
 
-.action {
-  border: 1px solid var(--line);
-  background: rgba(245,243,238,.82);
-  backdrop-filter: blur(8px);
-  padding: 11px 16px;
-  font-size: 9px;
-  letter-spacing: .16em;
-  color: var(--ink);
-  transition: all .25s ease;
+.action{
+  border:1px solid var(--border);
+  background:rgba(245,243,238,.84);
+  backdrop-filter:blur(8px);
+  color:var(--ink);
+  padding:11px 16px;
+  font-size:9px;
+  letter-spacing:.16em;
+  transition:.25s;
 }
 
-.action:hover {
-  background: var(--ink);
-  color: var(--paper);
+.action:hover{
+  background:var(--ink);
+  color:var(--paper);
 }
 
-.action.primary {
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
+.action.primary{
+  background:var(--ink);
+  border-color:var(--ink);
+  color:var(--paper);
 }
 
-.action.primary:hover {
-  opacity: .72;
-}
-
-.action.save {
-  display: none;
+.save{
+  display:none;
+  pointer-events:auto;
 }
 
 /* GALLERY */
 
-#gallery {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  background: var(--paper);
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: none;
-  touch-action: pan-y;
+#gallery{
+  position:fixed;
+  z-index:50;
+  inset:0;
+  display:none;
+  overflow-y:auto;
+  overflow-x:hidden;
+  background:var(--paper);
+  touch-action:pan-y;
 }
 
-.gallery-header {
-  padding: 28px 34px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+.gallery-header{
+  padding:28px 34px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
 }
 
-.gallery-title {
-  font-size: 15px;
-  letter-spacing: .28em;
-  font-weight: 500;
+.gallery-title{
+  font-size:15px;
+  letter-spacing:.28em;
 }
 
-.gallery-subtitle {
-  margin-top: 7px;
-  font-size: 9px;
-  letter-spacing: .18em;
-  color: var(--soft);
+.gallery-subtitle{
+  margin-top:7px;
+  color:var(--soft);
+  font-size:9px;
+  letter-spacing:.18em;
 }
 
-.close-gallery {
-  border: 0;
-  background: none;
-  font-size: 10px;
-  letter-spacing: .18em;
+.close-gallery{
+  border:0;
+  background:none;
+  color:var(--ink);
+  font-size:10px;
+  letter-spacing:.18em;
 }
 
-.gallery-grid {
-  padding: 35px 34px 80px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 45px 24px;
+.gallery-grid{
+  padding:35px 34px 80px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:45px 24px;
 }
 
-.empty-gallery {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 20vh 0;
-  color: var(--soft);
-  font-size: 10px;
-  letter-spacing: .18em;
+.empty{
+  grid-column:1/-1;
+  padding:20vh 0;
+  text-align:center;
+  color:var(--soft);
+  font-size:10px;
+  letter-spacing:.18em;
 }
 
-.trace-card {
-  min-width: 0;
+.card{
+  min-width:0;
 }
 
-.trace-image-wrap {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1.45 / 1;
-  overflow: hidden;
-  background: #ebe8e0;
+.image-wrap{
+  width:100%;
+  aspect-ratio:1.45/1;
+  overflow:hidden;
+  background:#ebe8e0;
 }
 
-.trace-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform .7s ease;
+.image-wrap img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  transition:.7s;
 }
 
-.trace-card:hover .trace-image {
-  transform: scale(1.025);
+.card:hover img{
+  transform:scale(1.025);
 }
 
-.trace-info {
-  padding-top: 13px;
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  align-items: flex-start;
+.info{
+  padding-top:13px;
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
 }
 
-.trace-number {
-  font-size: 8px;
-  letter-spacing: .16em;
-  color: var(--soft);
-  margin-bottom: 5px;
+.number{
+  margin-bottom:5px;
+  color:var(--soft);
+  font-size:8px;
+  letter-spacing:.16em;
 }
 
-.trace-name {
-  font-size: 12px;
-  letter-spacing: .03em;
+.name{
+  font-size:12px;
+  letter-spacing:.03em;
 }
 
-.trace-date {
-  font-size: 8px;
-  color: var(--soft);
-  letter-spacing: .08em;
-  text-align: right;
-  white-space: nowrap;
+.date{
+  color:var(--soft);
+  font-size:8px;
+  letter-spacing:.08em;
+  white-space:nowrap;
+  text-align:right;
 }
 
 /* MODAL */
 
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: rgba(17,17,17,.18);
-  backdrop-filter: blur(7px);
+.modal{
+  position:fixed;
+  z-index:100;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(17,17,17,.18);
+  backdrop-filter:blur(7px);
 }
 
-.modal-box {
-  width: min(480px, calc(100% - 40px));
-  background: var(--paper);
-  padding: 32px;
-  box-shadow: 0 25px 80px rgba(0,0,0,.12);
+.modal-box{
+  width:min(480px,calc(100% - 40px));
+  padding:32px;
+  background:var(--paper);
+  box-shadow:0 25px 80px rgba(0,0,0,.12);
 }
 
-.modal-label {
-  font-size: 8px;
-  letter-spacing: .2em;
-  color: var(--soft);
-  margin-bottom: 12px;
+.modal-label{
+  margin-bottom:12px;
+  color:var(--soft);
+  font-size:8px;
+  letter-spacing:.2em;
 }
 
-.modal-box h3 {
-  font-size: 22px;
-  font-weight: 400;
-  letter-spacing: .05em;
-  margin-bottom: 24px;
+.modal-box h3{
+  margin-bottom:24px;
+  font-size:22px;
+  font-weight:400;
+  letter-spacing:.05em;
 }
 
-#titleInput {
-  width: 100%;
-  border: 0;
-  border-bottom: 1px solid var(--ink);
-  background: transparent;
-  padding: 11px 0;
-  outline: none;
-  font-size: 15px;
-  color: var(--ink);
+#titleInput{
+  width:100%;
+  border:0;
+  border-bottom:1px solid var(--ink);
+  outline:0;
+  background:transparent;
+  padding:11px 0;
+  color:var(--ink);
+  font-size:15px;
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 28px;
+.modal-actions{
+  margin-top:28px;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
 }
 
-.modal-message {
-  margin-top: 14px;
-  font-size: 9px;
-  color: #a33;
-  min-height: 12px;
+.message{
+  min-height:13px;
+  margin-top:13px;
+  color:#a33;
+  font-size:9px;
 }
 
 /* MOBILE */
 
-@media (max-width: 700px) {
+@media(max-width:700px){
 
-  header {
-    padding: 22px 20px;
-    height: 70px;
+  header{
+    padding:22px 20px;
   }
 
-  .brand h1 {
-    font-size: 13px;
+  .brand h1{
+    font-size:13px;
   }
 
-  .brand p {
-    font-size: 7px;
+  .brand p{
+    font-size:7px;
   }
 
-  nav {
-    gap: 15px;
+  nav{
+    gap:15px;
   }
 
-  .nav-btn {
-    font-size: 8px;
+  .nav-btn{
+    font-size:8px;
   }
 
-  .counter {
-    right: 20px;
-    top: 76px;
-    font-size: 8px;
+  .counter{
+    top:76px;
+    right:20px;
+    font-size:8px;
   }
 
-  .intro h2 {
-    font-size: 48px;
+  .intro h2{
+    font-size:48px;
   }
 
-  .intro p {
-    font-size: 8px;
-    max-width: 250px;
-    line-height: 1.7;
+  .intro p{
+    max-width:270px;
+    font-size:8px;
   }
 
-  .controls {
-    left: 20px;
-    right: 20px;
-    bottom: 20px;
+  .controls{
+    left:20px;
+    right:20px;
+    bottom:20px;
   }
 
-  .action {
-    padding: 10px 12px;
-    font-size: 8px;
+  .action{
+    padding:10px 12px;
+    font-size:8px;
   }
 
-  .gallery-header {
-    padding: 22px 20px;
+  .gallery-header{
+    padding:22px 20px;
   }
 
-  .gallery-grid {
-    padding: 25px 20px 70px;
-    grid-template-columns: 1fr;
-    gap: 35px;
-  }
-
-  .trace-info {
-    padding-top: 11px;
+  .gallery-grid{
+    padding:25px 20px 70px;
+    grid-template-columns:1fr;
+    gap:35px;
   }
 }
 </style>
@@ -461,61 +442,53 @@ nav {
 
 <div id="app">
 
-  <canvas id="canvas"></canvas>
+<canvas id="canvas"></canvas>
 
-  <header>
+<header>
 
-    <div class="brand">
-      <h1>TRACE</h1>
-      <p>GESTURE / ALGORITHM / LINE</p>
-    </div>
-
-    <nav>
-      <button class="nav-btn active" id="createBtn">
-        CREATE
-      </button>
-
-      <button class="nav-btn" id="galleryBtn">
-        GALLERY
-      </button>
-    </nav>
-
-  </header>
-
-  <div class="counter" id="counter">
-    TRACE / 000
+  <div class="brand">
+    <h1>TRACE</h1>
+    <p>GESTURE / ALGORITHM / LINE</p>
   </div>
 
-  <div class="intro" id="intro">
+  <nav>
+    <button class="nav-btn active" id="createBtn">CREATE</button>
+    <button class="nav-btn" id="galleryBtn">GALLERY</button>
+  </nav>
 
-    <h2>TRACE</h2>
+</header>
 
-    <p>
-      MOVE ACROSS THE SURFACE.<br>
-      YOUR GESTURE BECOMES A TRACE.
-    </p>
+<div class="counter" id="counter">
+  TRACE / 000
+</div>
 
-  </div>
+<div class="intro" id="intro">
+  <h2>TRACE</h2>
+  <p>
+    MOVE ACROSS THE SURFACE.<br>
+    YOUR GESTURE BECOMES A TRACE.
+  </p>
+</div>
 
-  <div class="controls">
+<div class="controls">
 
-    <div class="control-group">
+  <div class="control-group">
 
-      <button class="action" id="clearBtn">
-        CLEAR
-      </button>
+    <button class="action" id="clearBtn">
+      CLEAR
+    </button>
 
-      <button class="action" id="generateBtn">
-        GENERATE
-      </button>
-
-    </div>
-
-    <button class="action primary save" id="saveBtn">
-      SAVE TRACE
+    <button class="action" id="generateBtn">
+      GENERATE
     </button>
 
   </div>
+
+  <button class="action primary save" id="saveBtn">
+    SAVE TRACE
+  </button>
+
+</div>
 
 </div>
 
@@ -527,7 +500,6 @@ nav {
   <div class="gallery-header">
 
     <div>
-
       <div class="gallery-title">
         GALLERY
       </div>
@@ -535,7 +507,6 @@ nav {
       <div class="gallery-subtitle">
         A COLLECTIVE ARCHIVE OF GESTURES
       </div>
-
     </div>
 
     <button class="close-gallery" id="closeGallery">
@@ -545,11 +516,9 @@ nav {
   </div>
 
   <div class="gallery-grid" id="galleryGrid">
-
-    <div class="empty-gallery">
+    <div class="empty">
       LOADING TRACES…
     </div>
-
   </div>
 
 </section>
@@ -557,7 +526,7 @@ nav {
 
 <!-- SAVE MODAL -->
 
-<div class="modal" id="saveModal">
+<div class="modal" id="modal">
 
   <div class="modal-box">
 
@@ -577,18 +546,15 @@ nav {
       spellcheck="false"
     >
 
-    <div
-      class="modal-message"
-      id="modalMessage">
-    </div>
+    <div class="message" id="message"></div>
 
     <div class="modal-actions">
 
-      <button class="action" id="cancelSave">
+      <button class="action" id="cancel">
         CANCEL
       </button>
 
-      <button class="action primary" id="confirmSave">
+      <button class="action primary" id="confirm">
         SAVE
       </button>
 
@@ -601,9 +567,9 @@ nav {
 
 <script>
 
-/* =========================================================
+/* =====================================================
    SUPABASE
-========================================================= */
+===================================================== */
 
 const SUPABASE_URL =
   "https://xmhrmpbqmivbqhhrixvu.supabase.co";
@@ -618,9 +584,9 @@ const db =
   );
 
 
-/* =========================================================
-   CANVAS
-========================================================= */
+/* =====================================================
+   ELEMENTS
+===================================================== */
 
 const canvas =
   document.getElementById("canvas");
@@ -628,8 +594,37 @@ const canvas =
 const ctx =
   canvas.getContext("2d");
 
-let width = 0;
-let height = 0;
+const intro =
+  document.getElementById("intro");
+
+const counter =
+  document.getElementById("counter");
+
+const saveBtn =
+  document.getElementById("saveBtn");
+
+const modal =
+  document.getElementById("modal");
+
+const titleInput =
+  document.getElementById("titleInput");
+
+const message =
+  document.getElementById("message");
+
+const gallery =
+  document.getElementById("gallery");
+
+const galleryGrid =
+  document.getElementById("galleryGrid");
+
+
+/* =====================================================
+   CANVAS
+===================================================== */
+
+let W = 0;
+let H = 0;
 
 let drawing = false;
 let hasDrawing = false;
@@ -638,23 +633,11 @@ let lastX = 0;
 let lastY = 0;
 let lastTime = 0;
 
-let strokePoints = [];
-let strokeCount = 0;
-
-let hueBase =
-  Math.random() * 360;
-
-const intro =
-  document.getElementById("intro");
-
-const saveBtn =
-  document.getElementById("saveBtn");
-
-const counter =
-  document.getElementById("counter");
+let strokes = 0;
+let hue = Math.random() * 360;
 
 
-function resizeCanvas() {
+function resize(){
 
   const ratio =
     Math.min(
@@ -662,23 +645,14 @@ function resizeCanvas() {
       2
     );
 
-  width =
-    window.innerWidth;
+  W = window.innerWidth;
+  H = window.innerHeight;
 
-  height =
-    window.innerHeight;
+  canvas.width = W * ratio;
+  canvas.height = H * ratio;
 
-  canvas.width =
-    width * ratio;
-
-  canvas.height =
-    height * ratio;
-
-  canvas.style.width =
-    width + "px";
-
-  canvas.style.height =
-    height + "px";
+  canvas.style.width = W + "px";
+  canvas.style.height = H + "px";
 
   ctx.setTransform(
     ratio,
@@ -689,185 +663,131 @@ function resizeCanvas() {
     0
   );
 
-  ctx.fillStyle =
-    "#f5f3ee";
-
-  ctx.fillRect(
-    0,
-    0,
-    width,
-    height
-  );
+  clearCanvas();
 }
-
-
-resizeCanvas();
 
 window.addEventListener(
   "resize",
-  resizeCanvas
+  resize
 );
 
 
-/* =========================================================
+/* =====================================================
    CLEAR
-========================================================= */
+===================================================== */
 
-function clearCanvas() {
+function clearCanvas(){
 
-  ctx.fillStyle =
-    "#f5f3ee";
+  ctx.fillStyle = "#f5f3ee";
 
   ctx.fillRect(
     0,
     0,
-    width,
-    height
+    W,
+    H
   );
 
   hasDrawing = false;
+  strokes = 0;
 
-  strokeCount = 0;
+  saveBtn.style.display = "none";
 
-  strokePoints = [];
-
-  saveBtn.style.display =
-    "none";
-
-  intro.classList.remove(
-    "hidden"
-  );
+  intro.classList.remove("hidden");
 
   counter.textContent =
     "TRACE / 000";
 }
 
 
-/* =========================================================
-   ALGORITHMIC DRAWING
-========================================================= */
+/* =====================================================
+   DRAW
+===================================================== */
 
-function drawGesture(
-  x,
-  y,
-  time
-) {
+function draw(x,y,time){
 
-  if (!drawing) return;
+  if(!drawing) return;
 
-  const dx =
-    x - lastX;
-
-  const dy =
-    y - lastY;
+  const dx = x-lastX;
+  const dy = y-lastY;
 
   const distance =
     Math.sqrt(
-      dx * dx +
-      dy * dy
+      dx*dx + dy*dy
     );
 
-  if (distance < 1) return;
+  if(distance < 1) return;
 
   const dt =
     Math.max(
-      time - lastTime,
+      time-lastTime,
       1
     );
 
   const speed =
-    distance / dt;
+    distance/dt;
 
   const angle =
-    Math.atan2(
-      dy,
-      dx
-    );
+    Math.atan2(dy,dx);
 
-  const normalX =
+  const nx =
     -Math.sin(angle);
 
-  const normalY =
+  const ny =
     Math.cos(angle);
 
   const wave =
     Math.sin(
-      time * 0.012 +
-      distance * 0.08
+      time*.012 +
+      distance*.08
     ) *
     (
       2 +
       Math.min(
-        speed * 0.7,
+        speed*.7,
         10
       )
     );
 
   const random =
     (
-      Math.random() - 0.5
+      Math.random()-.5
     ) *
     (
       1.5 +
       Math.min(
-        speed * 0.25,
+        speed*.25,
         5
       )
     );
 
-  const bendX =
-    normalX *
+  const px =
+    x + nx*(wave+random);
+
+  const py =
+    y + ny*(wave+random);
+
+  const currentHue =
     (
-      wave + random
-    );
-
-  const bendY =
-    normalY *
-    (
-      wave + random
-    );
-
-  const drawX =
-    x + bendX;
-
-  const drawY =
-    y + bendY;
-
-  const hue =
-    (
-      hueBase +
-      angle * 45 +
-      speed * 18 +
-      strokeCount * 3
+      hue +
+      angle*45 +
+      speed*18 +
+      strokes*4
     ) % 360;
 
-  const saturation =
-    72 +
-    Math.min(
-      speed * 3,
-      20
-    );
-
-  const lightness =
-    42 +
-    Math.min(
-      speed * 2,
-      15
-    );
-
   const alpha =
-    0.48 +
+    .5 +
     Math.min(
-      speed * 0.025,
-      0.28
+      speed*.025,
+      .25
     );
 
   const lineWidth =
     1.2 +
     Math.min(
-      speed * 0.18,
+      speed*.18,
       5
     );
+
 
   ctx.beginPath();
 
@@ -877,22 +797,17 @@ function drawGesture(
   );
 
   ctx.quadraticCurveTo(
-
-    (lastX + drawX) / 2 +
-    normalX * wave,
-
-    (lastY + drawY) / 2 +
-    normalY * wave,
-
-    drawX,
-    drawY
+    (lastX+px)/2 + nx*wave,
+    (lastY+py)/2 + ny*wave,
+    px,
+    py
   );
 
   ctx.strokeStyle =
     `hsla(
-      ${hue},
-      ${saturation}%,
-      ${lightness}%,
+      ${currentHue},
+      78%,
+      ${45+Math.min(speed*2,12)}%,
       ${alpha}
     )`;
 
@@ -908,14 +823,14 @@ function drawGesture(
   ctx.stroke();
 
 
-  /* ALGORITHMIC ECHO */
+  /* algorithmic echo */
 
-  if (speed > 2) {
+  if(speed > 2){
 
     const echo =
       5 +
       Math.min(
-        speed * 0.8,
+        speed*.8,
         12
       );
 
@@ -927,49 +842,28 @@ function drawGesture(
     );
 
     ctx.quadraticCurveTo(
-
-      (lastX + drawX) / 2 +
-      normalX *
-      (wave + echo),
-
-      (lastY + drawY) / 2 +
-      normalY *
-      (wave + echo),
-
-      drawX +
-      normalX * 2,
-
-      drawY +
-      normalY * 2
+      (lastX+px)/2 + nx*(wave+echo),
+      (lastY+py)/2 + ny*(wave+echo),
+      px+nx*2,
+      py+ny*2
     );
 
     ctx.strokeStyle =
       `hsla(
-        ${(hue + 25) % 360},
-        80%,
-        55%,
-        ${alpha * .28}
+        ${(currentHue+28)%360},
+        82%,
+        58%,
+        ${alpha*.27}
       )`;
 
     ctx.lineWidth =
       Math.max(
         .5,
-        lineWidth * .45
+        lineWidth*.45
       );
 
     ctx.stroke();
   }
-
-
-  strokePoints.push({
-
-    x: drawX,
-    y: drawY,
-    speed: speed,
-    angle: angle,
-    time: time
-
-  });
 
 
   lastX = x;
@@ -978,27 +872,24 @@ function drawGesture(
 
   hasDrawing = true;
 
-  intro.classList.add(
-    "hidden"
-  );
+  intro.classList.add("hidden");
 
-  saveBtn.style.display =
-    "block";
+  saveBtn.style.display = "block";
 
   counter.textContent =
     "TRACE / " +
-    String(strokeCount)
-      .padStart(3, "0");
+    String(strokes)
+      .padStart(3,"0");
 }
 
 
-/* =========================================================
-   POINTER EVENTS
-========================================================= */
+/* =====================================================
+   POINTER
+===================================================== */
 
 canvas.addEventListener(
   "pointerdown",
-  function(e) {
+  e => {
 
     e.preventDefault();
 
@@ -1008,26 +899,18 @@ canvas.addEventListener(
       e.pointerId
     );
 
-    lastX =
-      e.clientX;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    lastTime = performance.now();
 
-    lastY =
-      e.clientY;
+    strokes++;
 
-    lastTime =
-      performance.now();
-
-    strokePoints = [];
-
-    strokeCount++;
-
-    hueBase =
+    hue =
       (
-        hueBase +
-        37 +
-        Math.random() * 70
+        hue +
+        40 +
+        Math.random()*70
       ) % 360;
-
 
     ctx.beginPath();
 
@@ -1036,182 +919,142 @@ canvas.addEventListener(
       lastY,
       1.5,
       0,
-      Math.PI * 2
+      Math.PI*2
     );
 
     ctx.fillStyle =
       `hsla(
-        ${hueBase},
+        ${hue},
         80%,
         50%,
         .75
       )`;
 
     ctx.fill();
-
   }
 );
 
 
 canvas.addEventListener(
   "pointermove",
-  function(e) {
+  e => {
 
-    if (!drawing) return;
+    if(!drawing) return;
 
     e.preventDefault();
 
-    drawGesture(
+    draw(
       e.clientX,
       e.clientY,
       performance.now()
     );
-
   }
 );
 
 
-function stopDrawing(e) {
-
-  if (!drawing) return;
+function stop(e){
 
   drawing = false;
 
-  try {
-
+  try{
     canvas.releasePointerCapture(
       e.pointerId
     );
-
-  } catch (_) {}
-
+  }catch(_){}
 }
-
 
 canvas.addEventListener(
   "pointerup",
-  stopDrawing
+  stop
 );
 
 canvas.addEventListener(
   "pointercancel",
-  stopDrawing
-);
-
-canvas.addEventListener(
-  "pointerleave",
-  function(e) {
-
-    if (e.buttons === 0) {
-      stopDrawing(e);
-    }
-
-  }
+  stop
 );
 
 
-/* =========================================================
-   GENERATIVE MODE
-========================================================= */
+/* =====================================================
+   GENERATE
+===================================================== */
 
-function generateArtwork() {
+function generate(){
 
   clearCanvas();
 
-  intro.classList.add(
-    "hidden"
-  );
+  intro.classList.add("hidden");
 
-  const centerX =
-    width / 2;
+  hue =
+    Math.random()*360;
 
-  const centerY =
-    height / 2;
-
-  const amount =
-    4 +
+  const count =
+    5 +
     Math.floor(
-      Math.random() * 8
+      Math.random()*7
     );
 
-  hueBase =
-    Math.random() * 360;
+  const cx = W/2;
+  const cy = H/2;
 
-
-  for (
-    let s = 0;
-    s < amount;
+  for(
+    let s=0;
+    s<count;
     s++
-  ) {
+  ){
 
-    strokeCount++;
+    strokes++;
 
     let x =
-      centerX +
+      cx +
       (
-        Math.random() - .5
+        Math.random()-.5
       ) *
-      width *
-      .65;
+      W*.75;
 
     let y =
-      centerY +
+      cy +
       (
-        Math.random() - .5
+        Math.random()-.5
       ) *
-      height *
-      .55;
+      H*.65;
 
     let angle =
       Math.random() *
-      Math.PI *
-      2;
+      Math.PI*2;
 
-    let length =
-      100 +
+    const length =
+      120 +
       Math.random() *
-      Math.min(
-        width,
-        height
-      ) *
+      Math.min(W,H) *
       .8;
 
-    let steps =
-      80 +
+    const steps =
+      100 +
       Math.floor(
-        Math.random() * 100
+        Math.random()*80
       );
 
 
-    for (
-      let i = 0;
-      i < steps;
+    for(
+      let i=0;
+      i<steps;
       i++
-    ) {
+    ){
 
-      const progress =
-        i / steps;
-
-      const speed =
-        1.5 +
-        progress * 5;
+      const p =
+        i/steps;
 
       angle +=
         (
-          Math.random() - .5
-        ) *
-        .16;
+          Math.random()-.5
+        )*.16;
 
       const wave =
         Math.sin(
-          progress *
-          Math.PI *
-          4 +
-          s
+          p*Math.PI*4+s
         ) *
         (
-          4 +
-          progress * 16
+          4+p*18
         );
 
       const nx =
@@ -1220,33 +1063,30 @@ function generateArtwork() {
       const ny =
         Math.cos(angle);
 
-      const nextX =
+      const nx2 =
         x +
         Math.cos(angle) *
-        (length / steps) +
-        nx *
-        wave *
-        .035;
+        (length/steps);
 
-      const nextY =
+      const ny2 =
         y +
         Math.sin(angle) *
-        (length / steps) +
-        ny *
-        wave *
-        .035;
+        (length/steps);
 
-      const hue =
+      const endX =
+        nx2 +
+        nx*wave;
+
+      const endY =
+        ny2 +
+        ny*wave;
+
+      const c =
         (
-          hueBase +
-          s * 38 +
-          progress * 110 +
-          Math.sin(
-            progress * 8
-          ) *
-          25
+          hue +
+          s*38 +
+          p*120
         ) % 360;
-
 
       ctx.beginPath();
 
@@ -1256,35 +1096,32 @@ function generateArtwork() {
       );
 
       ctx.lineTo(
-        nextX +
-        nx * wave,
-        nextY +
-        ny * wave
+        endX,
+        endY
       );
 
       ctx.strokeStyle =
         `hsla(
-          ${hue},
-          78%,
-          ${45 + progress * 12}%,
-          ${.35 + progress * .4}
+          ${c},
+          80%,
+          ${45+p*12}%,
+          ${.38+p*.38}
         )`;
 
       ctx.lineWidth =
         .8 +
-        progress * 3.5 +
-        Math.random() * 1.8;
+        p*3.8 +
+        Math.random()*1.5;
 
       ctx.lineCap =
         "round";
 
       ctx.stroke();
 
-      x = nextX;
-      y = nextY;
+      x = nx2;
+      y = ny2;
     }
   }
-
 
   hasDrawing = true;
 
@@ -1293,197 +1130,69 @@ function generateArtwork() {
 
   counter.textContent =
     "TRACE / " +
-    String(strokeCount)
-      .padStart(3, "0");
+    String(strokes)
+      .padStart(3,"0");
 }
 
 
-/* =========================================================
-   BUTTONS
-========================================================= */
-
-document
-  .getElementById("clearBtn")
-  .addEventListener(
-    "click",
-    clearCanvas
-  );
-
-document
-  .getElementById("generateBtn")
-  .addEventListener(
-    "click",
-    generateArtwork
-  );
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-const gallery =
-  document.getElementById(
-    "gallery"
-  );
-
-const galleryGrid =
-  document.getElementById(
-    "galleryGrid"
-  );
-
-
-document
-  .getElementById("createBtn")
-  .addEventListener(
-    "click",
-    function() {
-
-      gallery.style.display =
-        "none";
-
-      document
-        .getElementById(
-          "createBtn"
-        )
-        .classList.add(
-          "active"
-        );
-
-      document
-        .getElementById(
-          "galleryBtn"
-        )
-        .classList.remove(
-          "active"
-        );
-
-    }
-  );
-
-
-document
-  .getElementById("galleryBtn")
-  .addEventListener(
-    "click",
-    function() {
-
-      showGallery();
-
-      document
-        .getElementById(
-          "galleryBtn"
-        )
-        .classList.add(
-          "active"
-        );
-
-      document
-        .getElementById(
-          "createBtn"
-        )
-        .classList.remove(
-          "active"
-        );
-
-    }
-  );
-
-
-document
-  .getElementById("closeGallery")
-  .addEventListener(
-    "click",
-    function() {
-
-      gallery.style.display =
-        "none";
-
-      document
-        .getElementById(
-          "createBtn"
-        )
-        .classList.add(
-          "active"
-        );
-
-      document
-        .getElementById(
-          "galleryBtn"
-        )
-        .classList.remove(
-          "active"
-        );
-
-    }
-  );
-
-
-/* =========================================================
+/* =====================================================
    GALLERY
-========================================================= */
+===================================================== */
 
-async function showGallery() {
+async function showGallery(){
 
   gallery.style.display =
     "block";
 
   galleryGrid.innerHTML =
-    '<div class="empty-gallery">LOADING TRACES…</div>';
+    '<div class="empty">LOADING TRACES…</div>';
 
-
-  const {
-    data,
-    error
-  } =
+  const result =
     await db
       .from("traces")
       .select(
-        "id, trace_number, title, image_data, created_at"
+        "id,trace_number,title,image_data,created_at"
       )
       .order(
         "trace_number",
         {
-          ascending: false
+          ascending:false
         }
       );
 
+  if(result.error){
 
-  if (error) {
-
-    console.error(error);
+    console.error(
+      result.error
+    );
 
     galleryGrid.innerHTML =
-      '<div class="empty-gallery">THE GALLERY COULD NOT BE LOADED.</div>';
+      '<div class="empty">THE GALLERY COULD NOT BE LOADED.</div>';
 
     return;
   }
 
-
   renderGallery(
-    data || []
+    result.data || []
   );
 }
 
 
-function renderGallery(
-  traces
-) {
+function renderGallery(items){
 
-  galleryGrid.innerHTML =
-    "";
+  galleryGrid.innerHTML = "";
 
-
-  if (!traces.length) {
+  if(!items.length){
 
     galleryGrid.innerHTML =
-      '<div class="empty-gallery">NO TRACES YET — BE THE FIRST.</div>';
+      '<div class="empty">NO TRACES YET — BE THE FIRST.</div>';
 
     return;
   }
 
 
-  traces.forEach(
-    trace => {
+  items.forEach(
+    item => {
 
       const card =
         document.createElement(
@@ -1491,38 +1200,35 @@ function renderGallery(
         );
 
       card.className =
-        "trace-card";
+        "card";
 
 
-      const imageWrap =
+      const wrap =
         document.createElement(
           "div"
         );
 
-      imageWrap.className =
-        "trace-image-wrap";
+      wrap.className =
+        "image-wrap";
 
 
-      const image =
+      const img =
         document.createElement(
           "img"
         );
 
-      image.className =
-        "trace-image";
+      img.src =
+        item.image_data;
 
-      image.src =
-        trace.image_data;
+      img.alt =
+        item.title;
 
-      image.alt =
-        trace.title;
-
-      image.loading =
+      img.loading =
         "lazy";
 
 
-      imageWrap.appendChild(
-        image
+      wrap.appendChild(
+        img
       );
 
 
@@ -1532,7 +1238,7 @@ function renderGallery(
         );
 
       info.className =
-        "trace-info";
+        "info";
 
 
       const left =
@@ -1547,14 +1253,13 @@ function renderGallery(
         );
 
       number.className =
-        "trace-number";
+        "number";
 
       number.textContent =
         "TRACE " +
         String(
-          trace.trace_number
-        )
-        .padStart(
+          item.trace_number
+        ).padStart(
           3,
           "0"
         );
@@ -1566,10 +1271,10 @@ function renderGallery(
         );
 
       name.className =
-        "trace-name";
+        "name";
 
       name.textContent =
-        trace.title;
+        item.title;
 
 
       left.appendChild(
@@ -1587,11 +1292,18 @@ function renderGallery(
         );
 
       date.className =
-        "trace-date";
+        "date";
 
       date.textContent =
-        formatDate(
-          trace.created_at
+        new Date(
+          item.created_at
+        ).toLocaleDateString(
+          "en-GB",
+          {
+            day:"2-digit",
+            month:"2-digit",
+            year:"numeric"
+          }
         );
 
 
@@ -1605,259 +1317,170 @@ function renderGallery(
 
 
       card.appendChild(
-        imageWrap
+        wrap
       );
 
       card.appendChild(
         info
       );
 
-
       galleryGrid.appendChild(
         card
       );
-
     }
   );
 }
 
 
-function formatDate(
-  dateString
-) {
-
-  const date =
-    new Date(
-      dateString
-    );
-
-  return date.toLocaleDateString(
-    "en-GB",
-    {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric"
-    }
-  );
-}
-
-
-/* =========================================================
+/* =====================================================
    SAVE MODAL
-========================================================= */
+===================================================== */
 
-const saveModal =
-  document.getElementById(
-    "saveModal"
+async function openSave(){
+
+  if(!hasDrawing) return;
+
+  /*
+    IMPORTANT:
+    The modal opens immediately.
+    The database is queried afterwards.
+  */
+
+  message.textContent = "";
+
+  titleInput.value =
+    "TRACE 001";
+
+  modal.style.display =
+    "flex";
+
+  setTimeout(
+    () => {
+      titleInput.focus();
+      titleInput.select();
+    },
+    100
   );
 
-const titleInput =
-  document.getElementById(
-    "titleInput"
-  );
 
-const modalMessage =
-  document.getElementById(
-    "modalMessage"
-  );
+  /*
+    Try to discover the next
+    gallery number in the background.
+  */
 
-
-async function openSaveModal() {
-
-  if (!hasDrawing) return;
-
-  modalMessage.textContent =
-    "";
-
-
-  const {
-    data,
-    error
-  } =
+  const result =
     await db
       .from("traces")
-      .select(
-        "trace_number"
-      )
+      .select("trace_number")
       .order(
         "trace_number",
         {
-          ascending: false
+          ascending:false
         }
       )
       .limit(1);
 
 
-  let nextNumber =
-    1;
+  if(
+    !result.error &&
+    result.data &&
+    result.data.length
+  ){
 
-
-  if (
-    !error &&
-    data &&
-    data.length
-  ) {
-
-    nextNumber =
+    const next =
       Number(
-        data[0].trace_number
+        result.data[0].trace_number
       ) + 1;
 
+    /*
+      Only replace the proposed
+      title if the user hasn't
+      already typed something.
+    */
+
+    if(
+      titleInput.value ===
+      "TRACE 001"
+    ){
+
+      titleInput.value =
+        "TRACE " +
+        String(next)
+          .padStart(3,"0");
+    }
   }
-
-
-  titleInput.value =
-    "TRACE " +
-    String(
-      nextNumber
-    ).padStart(
-      3,
-      "0"
-    );
-
-
-  saveModal.style.display =
-    "flex";
-
-
-  setTimeout(
-    () => {
-
-      titleInput.focus();
-      titleInput.select();
-
-    },
-    100
-  );
 }
 
 
-document
-  .getElementById("saveBtn")
-  .addEventListener(
-    "click",
-    openSaveModal
-  );
-
-
-document
-  .getElementById("cancelSave")
-  .addEventListener(
-    "click",
-    function() {
-
-      saveModal.style.display =
-        "none";
-
-    }
-  );
-
-
-/* =========================================================
-   CONFIRM SAVE
-========================================================= */
-
-document
-  .getElementById("confirmSave")
-  .addEventListener(
-    "click",
-    saveArtwork
-  );
-
-
-titleInput.addEventListener(
-  "keydown",
-  function(e) {
-
-    if (
-      e.key === "Enter"
-    ) {
-
-      saveArtwork();
-
-    }
-
-    if (
-      e.key === "Escape"
-    ) {
-
-      saveModal.style.display =
-        "none";
-
-    }
-
-  }
-);
-
-
-async function saveArtwork() {
+async function saveArtwork(){
 
   const title =
     titleInput.value.trim();
 
+  if(!title){
 
-  if (!title) {
-
-    modalMessage.textContent =
+    message.textContent =
       "PLEASE ENTER A NAME.";
 
     return;
   }
 
-
-  modalMessage.textContent =
+  message.textContent =
     "SAVING…";
 
 
-  const imageData =
+  /*
+    JPEG makes the shared database
+    considerably smaller.
+  */
+
+  const image =
     canvas.toDataURL(
       "image/jpeg",
-      0.88
+      .88
     );
 
 
-  const {
-    data,
-    error
-  } =
+  const result =
     await db
       .from("traces")
       .insert({
-        title: title,
-        image_data: imageData
+        title:title,
+        image_data:image
       })
       .select(
-        "id, trace_number, title, created_at"
+        "id,trace_number,title,created_at"
       )
       .single();
 
 
-  if (error) {
+  if(result.error){
 
-    console.error(error);
+    console.error(
+      result.error
+    );
 
-    modalMessage.textContent =
+    message.textContent =
       "COULD NOT SAVE THE TRACE.";
 
     return;
   }
 
 
-  modalMessage.textContent =
+  message.textContent =
     "SAVED.";
 
 
   setTimeout(
     () => {
 
-      saveModal.style.display =
+      modal.style.display =
         "none";
 
       saveBtn.style.display =
         "none";
 
       showGallery();
-
 
       document
         .getElementById(
@@ -1866,7 +1489,6 @@ async function saveArtwork() {
         .classList.add(
           "active"
         );
-
 
       document
         .getElementById(
@@ -1882,11 +1504,157 @@ async function saveArtwork() {
 }
 
 
-/* =========================================================
-   INITIAL STATE
-========================================================= */
+/* =====================================================
+   BUTTONS
+===================================================== */
 
-clearCanvas();
+document
+  .getElementById("clearBtn")
+  .addEventListener(
+    "click",
+    clearCanvas
+  );
+
+document
+  .getElementById("generateBtn")
+  .addEventListener(
+    "click",
+    generate
+  );
+
+document
+  .getElementById("saveBtn")
+  .addEventListener(
+    "click",
+    openSave
+  );
+
+document
+  .getElementById("confirm")
+  .addEventListener(
+    "click",
+    saveArtwork
+  );
+
+document
+  .getElementById("cancel")
+  .addEventListener(
+    "click",
+    () => {
+      modal.style.display =
+        "none";
+    }
+  );
+
+
+titleInput.addEventListener(
+  "keydown",
+  e => {
+
+    if(e.key === "Enter"){
+      saveArtwork();
+    }
+
+    if(e.key === "Escape"){
+      modal.style.display =
+        "none";
+    }
+  }
+);
+
+
+/* =====================================================
+   NAVIGATION
+===================================================== */
+
+document
+  .getElementById("galleryBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      showGallery();
+
+      document
+        .getElementById(
+          "galleryBtn"
+        )
+        .classList.add(
+          "active"
+        );
+
+      document
+        .getElementById(
+          "createBtn"
+        )
+        .classList.remove(
+          "active"
+        );
+    }
+  );
+
+
+document
+  .getElementById("createBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      gallery.style.display =
+        "none";
+
+      document
+        .getElementById(
+          "createBtn"
+        )
+        .classList.add(
+          "active"
+        );
+
+      document
+        .getElementById(
+          "galleryBtn"
+        )
+        .classList.remove(
+          "active"
+        );
+    }
+  );
+
+
+document
+  .getElementById("closeGallery")
+  .addEventListener(
+    "click",
+    () => {
+
+      gallery.style.display =
+        "none";
+
+      document
+        .getElementById(
+          "createBtn"
+        )
+        .classList.add(
+          "active"
+        );
+
+      document
+        .getElementById(
+          "galleryBtn"
+        )
+        .classList.remove(
+          "active"
+        );
+    }
+  );
+
+
+/* =====================================================
+   START
+===================================================== */
+
+resize();
 
 </script>
 
